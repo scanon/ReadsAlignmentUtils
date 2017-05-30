@@ -64,8 +64,8 @@ module ReadsAlignmentUtils {
                                       the alignment program */
        /* destination */
        string ws_id_or_name;       /*  A numeric value is interpreted
-                                      as an id and an alpha-numeric value is
-                                      interpreted as a name */
+                                       as an id and an alpha-numeric value is
+                                       interpreted as a name */
 	   string name;                /*  name of the workspace object  */
 
    }  UploadAlignmentParams;
@@ -129,7 +129,6 @@ module ReadsAlignmentUtils {
      typedef structure {
          string shock_id;   /* shock id of file to export */
      } ExportOutput;
-
 
 
     /** Wrapper function for use by in-narrative downloaders to download alignments from shock **/
