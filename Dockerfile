@@ -21,6 +21,17 @@ RUN pip install cffi --upgrade \
     && pip install requests --upgrade \
     && pip install 'requests[security]' --upgrade
 
+# Install Samtools
+RUN cd /opt \
+    && wget https://github.com/samtools/samtools/releases/download/1.4.1/samtools-1.4.1.tar.bz2 \
+    && tar xvjf samtools-1.4.1.tar.bz2 \
+    && cd samtools-1.4.1 \
+    && ./configure \
+    && make \
+    && make install
+
+ENV PATH $PATH:/opt/samtools-1.4.1
+
 # -----------------------------------------
 
 COPY ./ /kb/module
