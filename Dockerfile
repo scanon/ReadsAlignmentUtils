@@ -25,6 +25,7 @@ RUN pip install cffi --upgrade \
 RUN cd /opt \
     && wget https://github.com/samtools/samtools/releases/download/1.4.1/samtools-1.4.1.tar.bz2 \
     && tar xvjf samtools-1.4.1.tar.bz2 \
+    && rm -f samtools-1.4.1.tar.bz2 \
     && cd samtools-1.4.1 \
     && ./configure \
     && make \
