@@ -2,8 +2,8 @@ from script_utils import log as log
 from script_utils import whereis
 from subprocess import Popen, PIPE
 import os
+import re
 import logging
-
 
 class SamTools:
     """
@@ -45,6 +45,47 @@ class SamTools:
                                      'environmental variable. {1}'.format(
                 'samtools', os.environ.get('PATH', '')))
 
+    def _extractAlignmentStatsInfo(self, stats):
+        '''
+        Extract stats from line format and return as dict 
+        '''
+        lines = stats.splitlines()
+
+        # patterns
+        two_nums = re.compile(r'^(\d+) \+ (\d+)')
+        two_pcts = re.compile(r'\(([0-9.na\-]+)%:([0-9.na\-]+)%\)')
+        # alignment rate
+        m = two_nums.match(lines[0])
+        total_qcpr = int(m.group(1))
+        total_qcfr = int(m.group(2))
+        total_read = total_qcpr + total_qcfr
+
+        m = two_nums.match(lines[4])
+        mapped_r = int(m.group(1))
+        unmapped_r = int(total_read - mapped_r)
+        alignment_rate = float(mapped_r) / float(total_read) * 100.0
+        if alignment_rate > 100: alignment_rate = 100.0
+
+        # singletons
+        m = two_nums.match(lines[10])
+        singletons = int(m.group(1))
+        m = two_nums.match(lines[8])
+        properly_paired = int(m.group(1))
+        multiple_alignments = 0
+
+            # Create Workspace object
+        stats_data = {
+            # "alignment_id": sample_id,
+            "alignment_rate": alignment_rate,
+            "multiple_alignments": multiple_alignments,
+            "properly_paired": properly_paired,
+            "singletons": singletons,
+            "total_reads": total_read,
+            "unmapped_reads": unmapped_r,
+            "mapped_reads": mapped_r
+        }
+        return stats_data
+
 
     def convert_sam_to_sorted_bam(self, ifile,ipath=None, ofile=None, opath=None):
         """
@@ -80,8 +121,9 @@ class SamTools:
             view = Popen('samtools view -bS {0}'.format(ifile), shell=True, stdout=sort.stdin)
             result, stderr = sort.communicate()  # samtools always returns success
             view.wait()
-        except:
-            raise RuntimeError(None, 'failed to convert {0} to {1}'.format(ifile, ofile))
+        except Exception as ex:
+            log('failed to convert {0} to {1}'.format(ifile, ofile) +
+                                        '. ' + ex.message, logging.ERROR)
 
         return 0
 
@@ -117,8 +159,10 @@ class SamTools:
         # samtools view -h ifile > ofile
         try:
             convert = Popen('samtools view -h {0} > {1}'.format(ifile, ofile), shell=True, stdin=PIPE, stdout=PIPE)
-        except:
-            raise RuntimeError(None, 'failed to convert {0} to {1}'.format(ifile, ofile))
+            convert.communicate()
+        except Exception as ex:
+            log('failed to convert {0} to {1}'.format(ifile,ofile)+
+                                         '. '+ex.message, logging.ERROR)
 
         return 0
 
@@ -156,22 +200,48 @@ class SamTools:
         try:
             create = Popen('samtools index {0} {1}'.format(ifile, ofile),
                             shell=True, stdin=PIPE, stdout=PIPE)
-        except:
-            raise RuntimeError(None,
-                               'failed to convert {0} to {1}'.format(ifile,
-                                                                     ofile))
+            create.communicate()
+        except Exception as ex:
+            log('failed to convert {0} to {1}'.format(ifile,ofile)+
+                                         '. '+ex.message, logging.ERROR)
 
         return 0
 
 
+    def get_stats(self, ifile, ipath=None):
+        """
+        Generate simple statistics from a BAM file. The statistics collected include 
+        counts of aligned and unaligned reads as well as all records with no start 
+        coordinate. 
+        
+        :param ifile: bam file name
+        :param ipath: path to bam file. If None, ipath is set to current path
+        """
+        if ipath is None: ipath = ''
+        ifile = os.path.join(ipath, ifile)
+
+        # check if input file exists
+        if not os.path.exists(ifile):
+            raise RuntimeError(None,
+                               'Input bam file does not exist: ' + str(ifile))
+
+        # get stats
+        self._check_prog()
+
+        try:
+            # samtools flagstat ifile
+            stats = Popen('samtools flagstat {0}'.format(ifile),
+                            shell=True, stdin=PIPE, stdout=PIPE)
+            stats, stderr = stats.communicate()
+
+            result = self._extractAlignmentStatsInfo(stats)
+
+        except Exception as ex:
+            log('failed to get stats from {0}'.format(ifile)+'. '+ex.message, logging.ERROR)
+
+        return result
 
 
-    '''
-    Generate simple statistics from a BAM file. This tool calculates statistics 
-    from a BAM file. The statistics collected include counts of aligned and unaligned 
-    reads as well as all records with no start coordinate. The input to the tool 
-    is the BAM file name but it must be accompanied by a corresponding index file.
-    '''
-    def get_stats(self):
-        # samtools flagstat work/accepted_hits_sorted.bam
-        pass
+
+
+

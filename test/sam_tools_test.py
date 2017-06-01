@@ -79,7 +79,6 @@ class ScriptUtilsTest(unittest.TestCase):
                                        ipath='data/samtools',
                                        ofile=ofile,
                                        opath=opath )
-        sleep(4)
 
         self.assertEquals(result, 0)
         self.assertTrue(os.path.exists(opath+ofile))
@@ -105,7 +104,6 @@ class ScriptUtilsTest(unittest.TestCase):
                                        ipath='data/samtools',
                                        ofile=ofile,
                                        opath=opath )
-        sleep(4)
 
         self.assertEquals(result, 0)
         self.assertTrue(os.path.exists(opath+ofile))
@@ -131,7 +129,6 @@ class ScriptUtilsTest(unittest.TestCase):
                                        ipath='data/samtools',
                                        ofile=ofile,
                                        opath=opath )
-        sleep(4)
 
         self.assertEquals(result, 0)
         self.assertTrue(os.path.exists(opath+ofile))
@@ -142,6 +139,20 @@ class ScriptUtilsTest(unittest.TestCase):
     def test_invalid_create_bai_to_bam(self):
         #TODO need to add validation before writing this method
         pass
+
+
+    def test_get_stats(self):
+
+        samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
+
+        stats = samt.get_stats(ifile='accepted_hits.sam',
+                       ipath='data/samtools')
+
+        self.assertEquals(stats['unmapped_reads'], 285)
+        self.assertEquals(stats['mapped_reads'], 19213)
+        self.assertEquals(stats['singletons'], 0)
+        self.assertEquals(stats['total_reads'], 19498)
+
 
 
 
