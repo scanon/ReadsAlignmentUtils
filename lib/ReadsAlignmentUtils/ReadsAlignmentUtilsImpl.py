@@ -42,6 +42,12 @@ the stored alignment.
     PARAM_IN_WS = 'ws_id_or_name'
     PARAM_IN_OBJ = 'obj_id_or_name'
     PARAM_IN_FILE = 'file_path'
+    PARAM_IN_LIB_TYPE = 'library_type'
+    PARAM_IN_CONDITION = 'condition'
+    PARAM_IN_SAMPLE_ID = 'read_sample_id'
+    PARAM_IN_GENOME_ID = 'genome_id'
+    PARAM_IN_ALIGNED_USING = 'aligned_using'
+    PARAM_IN_ALIGNER_VER = 'aligner_version'
 
     INVALID_WS_OBJ_NAME_RE = re.compile('[^\\w\\|._-]')
     INVALID_WS_NAME_RE = re.compile('[^\\w:._-]')
@@ -51,12 +57,18 @@ the stored alignment.
               str(time.time()) + ': ' + message)
 
 
-    def _check_required_param(self, in_params, param):
-        if (param not in in_params or not in_params[param]):
-            raise ValueError(param + ' parameter is required')
+    def _check_required_param(self, in_params, param_list):
+
+       ###  Checks if each of the params in the list are in the input params
+
+       for param in param_list:
+            if (param not in in_params or not in_params[param]):
+                raise ValueError(param + ' parameter is required')
 
 
     def _proc_ws_obj_params(self, ctx, params):
+
+        ###  Checks the validity of workspace and object params and return them
 
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
@@ -82,11 +94,16 @@ the stored alignment.
 
     def _proc_upload_alignment_params(self, ctx, params):
 
-        # TO DO:  add all required params
+        ###  Checks the presence and validity of upload alignment params
 
-        self._check_required_param(params, self.PARAM_IN_WS)
-        self._check_required_param(params, self.PARAM_IN_OBJ)
-        self._check_required_param(params, self.PARAM_IN_FILE)
+        self._check_required_param(params, [self.PARAM_IN_WS,
+                                            self.PARAM_IN_OBJ,
+                                            self.PARAM_IN_FILE,
+                                            self.PARAM_IN_LIB_TYPE,
+                                            self.PARAM_IN_CONDITION,
+                                            self.PARAM_IN_SAMPLE_ID,
+                                            self.PARAM_IN_GENOME_ID
+                                            ])
 
         ws_name_id, obj_name_id = self._proc_ws_obj_params(ctx, params)
 
@@ -100,13 +117,18 @@ the stored alignment.
 
     def _proc_download_alignment_params(self, ctx, params):
 
-        self._check_required_param(params, self.PARAM_IN_WS)
-        self._check_required_param(params, self.PARAM_IN_OBJ)
+        ###  Checks the presence and validity of download alignment params
+
+        self._check_required_param(params, [self.PARAM_IN_WS,
+                                            self.PARAM_IN_OBJ])
 
         return self._proc_ws_obj_params(ctx, params)
 
 
     def _get_aligner_stats(self, file):
+
+        ###  Gets the aligner stats from BAM file
+
         return self.samtools.get_stats(file)
 
 
@@ -122,6 +144,7 @@ the stored alignment.
         #END_CONSTRUCTOR
         pass
 
+
     def validate_alignment(self, ctx, params):
         """
         :param params: instance of type "ValidateAlignmentParams" (* Input
@@ -134,6 +157,11 @@ the stored alignment.
         # ctx is the context object
         # return variables are: returnVal
         #BEGIN validate_alignment
+
+        ### calls samtools validata alignment
+
+        returnVal = {'validated': True }
+
         #END validate_alignment
 
         # At some point might do deeper type checking...
@@ -177,25 +205,18 @@ the stored alignment.
         file_handle = uploaded_file['handle']
         file_size = uploaded_file['size']
 
-        print("\nUploaded file ===================")
-        pprint(uploaded_file)
-        print("====================\n")
-
         aligner_stats = self._get_aligner_stats(file_path)
 
-        # the following parameters are required to be provided for
-        # the workspace object validation
-        #  TO DO:  need to get these from input parameters
         #  TO_DO:  how to push these into provenance
 
         aligner_data = {'file': file_handle,
                        'size': file_size,
-                       #'aligned_using': 'update this',
-                       #'aligner_version': 'update this',
-                       'library_type': 'update this',
-                       'condition': 'update this',
-                       'read_sample_id': '2300',
-                       'genome_id': '3400',
+                       'aligned_using': params.get(self.PARAM_IN_ALIGNED_USING, 'None'),
+                       'aligner_version': params.get(self.PARAM_IN_ALIGNER_VER, 'None'),
+                       'library_type': params.get(self.PARAM_IN_LIB_TYPE),
+                       'condition': params.get(self.PARAM_IN_CONDITION),
+                       'read_sample_id': params.get(self.PARAM_IN_SAMPLE_ID),
+                       'genome_id': params.get(self.PARAM_IN_GENOME_ID),
                        'alignment_stats': aligner_stats
                       }
         try:
@@ -214,9 +235,9 @@ the stored alignment.
 
         self.log('save complete')
 
-        print("\nSAVE OBJECTS OUTPUT ===================")
+        print("============== SAVE OBJECTS OUTPUT ===================")
         pprint(res)
-        print("====================\n")
+        print("======================================================\n")
 
         returnVal = {'obj_ref': str(res[6]) + '/' + str(res[0]) + '/' + str(res[4])}
 
@@ -293,27 +314,35 @@ the stored alignment.
         obj_ref = obj_name_id if '/' in obj_name_id else \
                     (str(ws_name_id) + '/' + str(obj_name_id))
 
-        # call get_object_info_new ??
-
         try:
             alignment = dfu.get_objects({'object_refs': [obj_ref]})['data']
         except DFUError as e:
             self.log('Logging stacktrace from workspace exception:\n' + e.data)
             raise
 
-        print("Alignment ===============")
+        print("=========== Alignment ===============")
         pprint(alignment)
-        print("=================")
+        print("=====================================")
+
+        ## TO DO: check error from shock_to_file
+
+        file_ret = dfu.shock_to_file({
+                                    'shock_id': alignment[0]['data']['file']['id'],
+                                    'file_path': self.scratch
+                                    })
 
         downloaded_file = alignment[0]['data']['file']['file_name']
+
         print(downloaded_file)
 
         file_name, file_ext = os.path.splitext(downloaded_file)
-        bam_file = ''
+
+        ## TO DO: to check flags in input param to see which files need to be created
 
         if file_ext.lower() == '.sam':
             sam_file = downloaded_file
             bam_file = file_name + '.bam'
+            ## TO DO: check error from samtools
             self.samtools.convert_sam_to_sorted_bam(sam_file, self.scratch,
                                                         bam_file)
 
@@ -324,12 +353,13 @@ the stored alignment.
             raise ValueError("File not of type .sam or .bam")
 
         bai_file = file_name + '.bai'
+        # TO DO: check error from samtools
         self.samtools.create_bai_from_bam(bam_file, self.scratch, bai_file)
 
-        returnVal = {'ws_id':ws_name_id,
+        returnVal = {'ws_id': ws_name_id,
                      'bam_file': bam_file,
                      'bai_file': bai_file
-                     }
+                    }
 
         #END download_alignment
 

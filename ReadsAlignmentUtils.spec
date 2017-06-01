@@ -37,8 +37,6 @@ module ReadsAlignmentUtils {
           authentication required;
 
 
-   /** Input parameters for uploading a reads alignment **/
-
    typedef structure {
        string aligned_using;       /* Optional ‘hisat2’, ‘tophat2’, ‘bowtie2’ or
                                       some other aligner name */
