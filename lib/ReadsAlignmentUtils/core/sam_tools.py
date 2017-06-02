@@ -138,7 +138,7 @@ class SamTools:
             raise RuntimeError(None, 'Input sam file does not exist: '+str(ifile))
 
         # validate input sam file
-        if validate and validate(ifile, ipath, ignore) == 1:
+        if validate and self.validate(ifile, ipath=None, ignore=ignore) == 1:
             return 1
 
         # convert
@@ -185,7 +185,7 @@ class SamTools:
             raise RuntimeError(None, 'Input bam file does not exist: '+str(ifile))
 
         # validate input sam file
-        if validate and validate(ifile, ipath, ignore) == 1:
+        if validate and self.validate(ifile, ipath=None, ignore=ignore) == 1:
             return 1
 
         # convert
@@ -231,7 +231,7 @@ class SamTools:
                                'Input bam file does not exist: ' + str(ifile))
 
         # validate input sam file
-        if validate and validate(ifile, ipath, ignore) == 1:
+        if validate and self.validate(ifile, ipath=None, ignore=ignore) == 1:
             return 1
 
         # convert

@@ -222,5 +222,32 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                     }, self.more_upload_params),
             'File does not exist: foo')
 
+
+    def test_valid_validate_alignment(self):
+        params = {'file_path':'data/samtools/accepted_hits.sam',
+                   'ignore':['MATE_NOT_FOUND','MISSING_READ_GROUP',
+                         'INVALID_MAPPING_QUALITY']}
+
+        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
+
+        self.assertEquals(True, ret['validated'])
+
+        params = {'file_path': 'data/samtools/accepted_hits.sam'}
+
+        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
+
+        self.assertEquals(True, ret['validated'])
+
+
+    def test_valid_invalidate_alignment(self):
+        params = {'file_path': 'data/samtools/accepted_hits_invalid.sam',
+                  'ignore': ['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
+                             'INVALID_MAPPING_QUALITY']}
+
+        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
+
+        self.assertEquals(False, ret['validated'])
+
+
     # TO DO:  add more tests
 
