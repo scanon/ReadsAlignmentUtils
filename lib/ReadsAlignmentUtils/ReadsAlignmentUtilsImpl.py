@@ -52,9 +52,20 @@ the stored alignment.
     INVALID_WS_OBJ_NAME_RE = re.compile('[^\\w\\|._-]')
     INVALID_WS_NAME_RE = re.compile('[^\\w:._-]')
 
+
     def log(self, message, prefix_newline=False):
         print(('\n' if prefix_newline else '') +
               str(time.time()) + ': ' + message)
+
+
+    def _get_file_path_info(self, file_path):
+
+        ### returns the dir name, file base name and extension
+
+        dir, file_name = os.path.split(file_path)
+        file_base, file_ext = os.path.splitext(file_name)
+
+        return dir, file_name, file_base, file_ext
 
 
     def _check_required_param(self, in_params, param_list):
@@ -158,7 +169,7 @@ the stored alignment.
         # return variables are: returnVal
         #BEGIN validate_alignment
 
-        ### calls samtools validata alignment
+        ### calls samtools validata alignment - TO DO when it is available
 
         returnVal = {'validated': True }
 
@@ -194,11 +205,22 @@ the stored alignment.
         self.log('Starting upload Reads Alignment, parsing parameters')
         ws_name_id, obj_name_id, file_path = self._proc_upload_alignment_params(ctx, params)
 
-        # validate input sam/bam file
+        dir, file_name, file_base, file_ext = self._get_file_path_info(file_path)
+
+        # validates input file - TO DO
+        # converts to sorted BAM if needed
+
+        # more file type and error checking - TO DO
+
+        bam_file = file_path
+        if file_ext.lower() == '.sam':
+            # checks error from samtools - TO DO
+            self.samtools.convert_sam_to_sorted_bam(file_name, dir)
+            bam_file = os.path.join(dir, file_base + '.bam')
 
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
-        uploaded_file = dfu.file_to_shock({'file_path': file_path,
+        uploaded_file = dfu.file_to_shock({'file_path': bam_file,
                                            'make_handle': 1
                                            })
 
@@ -207,7 +229,7 @@ the stored alignment.
 
         aligner_stats = self._get_aligner_stats(file_path)
 
-        #  TO_DO:  how to push these into provenance
+        #  TO_DO:  whether and how to push these into provenance
 
         aligner_data = {'file': file_handle,
                        'size': file_size,
@@ -324,37 +346,30 @@ the stored alignment.
         pprint(alignment)
         print("=====================================")
 
-        ## TO DO: check error from shock_to_file
+        ## check error from shock_to_file: to do
 
         file_ret = dfu.shock_to_file({
                                     'shock_id': alignment[0]['data']['file']['id'],
                                     'file_path': self.scratch
                                     })
 
-        downloaded_file = alignment[0]['data']['file']['file_name']
+        ## make sure the output file is present: to do
 
-        print(downloaded_file)
+        bam_file = alignment[0]['data']['file']['file_name']
 
-        file_name, file_ext = os.path.splitext(downloaded_file)
+        print(bam_file)
 
-        ## TO DO: to check flags in input param to see which files need to be created
+        dir, file_name, file_base, file_ext = self._get_file_path_info(bam_file)
 
-        if file_ext.lower() == '.sam':
-            sam_file = downloaded_file
-            bam_file = file_name + '.bam'
-            ## TO DO: check error from samtools
-            self.samtools.convert_sam_to_sorted_bam(sam_file, self.scratch,
-                                                        bam_file)
+        ## check flags in input param to see which files need to be created - TO DO
 
-        elif file_ext.lower() == '.bam':
-            bam_file = downloaded_file
+        ## check error from samtools - TO DO
+        # self.samtools.convert_bam_to_sam(bam_file, self.scratch)
+        sam_file = file_base + '.sam'
 
-        else:
-            raise ValueError("File not of type .sam or .bam")
-
-        bai_file = file_name + '.bai'
-        # TO DO: check error from samtools
-        self.samtools.create_bai_from_bam(bam_file, self.scratch, bai_file)
+        # check error from samtools - TO DO
+        bai_file = file_base + '.bai'
+        self.samtools.create_bai_from_bam(bam_file, self.scratch)
 
         returnVal = {'ws_id': ws_name_id,
                      'bam_file': bam_file,
