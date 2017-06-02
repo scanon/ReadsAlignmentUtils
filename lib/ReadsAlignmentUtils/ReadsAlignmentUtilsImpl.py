@@ -241,6 +241,7 @@ the stored alignment.
            to String, parameter "validate" of type "boolean" (A boolean - 0
            for false, 1 for true. @range (0, 1)), parameter "ignore" of list
            of String
+
         :returns: instance of type "UploadAlignmentOutput" (*  Output from
            uploading a reads alignment  *) -> structure: parameter "obj_ref"
            of String
@@ -350,6 +351,7 @@ the stored alignment.
     def download_alignment(self, ctx, params):
         """
         Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats *
+
         :param params: instance of type "DownloadAlignmentParams" (* Required
            input parameters for downloading a reads alignment ws_id_or_name 
            -  Destination: A numeric value is interpreted as an id and an
@@ -364,6 +366,7 @@ the stored alignment.
            "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
            parameter "validate" of type "boolean" (A boolean - 0 for false, 1
            for true. @range (0, 1)), parameter "ignore" of list of String
+
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "bam_file" of String, parameter "sam_file" of
@@ -402,9 +405,11 @@ the stored alignment.
 
         ## check error from shock_to_file: to do
 
+        output_dir = self.scratch
+
         file_ret = dfu.shock_to_file({
                                     'shock_id': alignment[0]['data']['file']['id'],
-                                    'file_path': self.scratch
+                                    'file_path': output_dir
                                     })
 
         ## make sure the output file is present: to do
@@ -426,8 +431,8 @@ the stored alignment.
         self.samtools.create_bai_from_bam(bam_file, self.scratch)
 
         returnVal = {'ws_id': ws_name_id,
-                     'bam_file': bam_file,
-                     'bai_file': bai_file
+                     'bam_file': os.path.join(output_dir, bam_file),
+                     'bai_file': os.path.join(output_dir, bai_file)
                     }
 
         #END download_alignment

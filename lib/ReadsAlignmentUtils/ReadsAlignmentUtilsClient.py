@@ -74,6 +74,7 @@ class ReadsAlignmentUtils(object):
            to String, parameter "validate" of type "boolean" (A boolean - 0
            for false, 1 for true. @range (0, 1)), parameter "ignore" of list
            of String
+
         :returns: instance of type "UploadAlignmentOutput" (*  Output from
            uploading a reads alignment  *) -> structure: parameter "obj_ref"
            of String
@@ -97,6 +98,7 @@ class ReadsAlignmentUtils(object):
     def download_alignment(self, params, context=None):
         """
         Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats *
+
         :param params: instance of type "DownloadAlignmentParams" (* Required
            input parameters for downloading a reads alignment ws_id_or_name 
            -  Destination: A numeric value is interpreted as an id and an
@@ -111,6 +113,7 @@ class ReadsAlignmentUtils(object):
            "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
            parameter "validate" of type "boolean" (A boolean - 0 for false, 1
            for true. @range (0, 1)), parameter "ignore" of list of String
+
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "bam_file" of String, parameter "sam_file" of
