@@ -23,7 +23,7 @@ from ReadsAlignmentUtils.core.sam_tools import SamTools
 
 
 
-class ScriptUtilsTest(unittest.TestCase):
+class SamToolsTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -153,6 +153,39 @@ class ScriptUtilsTest(unittest.TestCase):
         self.assertEquals(stats['singletons'], 0)
         self.assertEquals(stats['total_reads'], 19498)
 
+    def test__is_valid(self):
+        result = '\n'+ \
+                 ' \n'+ \
+                 '## HISTOGRAM	java.lang.String\n'+ \
+                 'Error Type	Count\n'+ \
+                 'ERROR:MISSING_READ_GROUP	1\n'+ \
+                 'WARNING:RECORD_MISSING_READ_GROUP	19498\n'
+        samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
+
+        self.assertFalse(samt._is_valid(result, None))
+        self.assertTrue(samt._is_valid(result, ['MISSING_READ_GROUP']))
+
+
+
+    def test_valid_validate(self):
+
+        samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
+
+        rval = samt.validate(ifile='accepted_hits.sam',
+                               ipath='data/samtools',
+                             ignore=['MISSING_READ_GROUP'])
+
+        self.assertEquals(0, rval)
+
+
+    def test_invalid_validate(self):
+
+        samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
+
+        rval = samt.validate(ifile='accepted_hits_invalid.sam',
+                               ipath='data/samtools')
+
+        self.assertEquals(1, rval)
 
 
 
