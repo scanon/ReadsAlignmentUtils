@@ -19,6 +19,12 @@ from ReadsAlignmentUtils.ReadsAlignmentUtilsServer import MethodContext
 from ReadsAlignmentUtils.authclient import KBaseAuth as _KBaseAuth
 
 
+def dictmerge(x, y):
+    z = x.copy()
+    z.update(y)
+    return z
+
+
 class ReadsAlignmentUtilsTest(unittest.TestCase):
 
     @classmethod
@@ -66,9 +72,23 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
 
+
     @classmethod
     def setupTestData(cls):
-        pass
+
+        ### have a upload directory different from scratch
+
+        cls.upload_dir = os.path.join(cls.scratch, 'upload')
+        try:
+            os.stat(cls.upload_dir)
+        except:
+            os.mkdir(cls.upload_dir)
+
+        cls.upload_file = 'accepted_hits_sorted.bam'
+        cls.upload_file_path = os.path.join('/kb/module/test/data/samtools', cls.upload_file)
+        shutil.copy2(cls.upload_file_path, cls.upload_dir)
+        cls.file_to_upload = os.path.join(cls.upload_dir, cls.upload_file)
+
 
     def getWsClient(self):
         return self.__class__.wsClient
@@ -94,49 +114,42 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             return hash_md5.hexdigest()
 
 
+    more_upload_params = {'library_type': 'single_end',
+                          'read_sample_id': 'Ecoli_SE_8083_R1.fastq',
+                          'genome_id': 'Escherichia_coli_K12',
+                          'condition': 'test_condition'
+                         }
+
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
 
-    # unit test named so that it is called before test_alignment_download()
+    def test_alignment_upload_download(self):
 
-    def test_alignment_a_upload(self):
+        ##  file uploaded from self.scratch/upload directory
+        ##  downloaded to self.scratch directory
 
-        upload_file = 'accepted_hits.sam'
-        upload_path = os.path.join('/kb/module/test/data/samtools', upload_file)
+        expected_md5 = self.md5(self.upload_file_path)
 
-        expected_md5 = self.md5(upload_path)
-
-        shutil.copy2(upload_path, self.scratch)
-        upload_file_path = os.path.join(self.scratch, upload_file)
-
-        params = {'ws_id_or_name': self.getWsName(),
-                  'obj_id_or_name': 'test_alignment',
-                  'file_path': upload_file_path
-                 }
+        params = dictmerge({'ws_id_or_name': self.getWsName(),
+                            'obj_id_or_name': 'test_alignment',
+                            'file_path': self.file_to_upload,
+                            }, self.more_upload_params)
 
         ret = self.getImpl().upload_alignment(self.ctx, params)[0]
 
-        print("Returned value from upload +++++++++++ ")
+        print(" ====== Returned value from upload ======= ")
         pprint(ret)
 
-        # TO DO, SOON:  get the file info from the alignment object
-        # Compare file name, size, checksum etc with the given values
-        # they have been manually verified
-
-
-    def test_alignment_download(self):
-
         params = {'ws_id_or_name': self.getWsName(),
-                  'obj_id_or_name': 'test_alignment'
-                 }
+                  'obj_id_or_name': 'test_alignment' }
 
         ret = self.getImpl().download_alignment(self.ctx, params)[0]
 
-        print("Returned value from download +++++++++++ ")
+        print("====== Returned value from download ======= ")
         pprint(ret)
 
-        # No errors, manually verified
-        # TO DO, SOON: compare downloaded file attributes with that of the uploaded one
-        # another test combining both upload and download
+        downloaded_file = os.path.join(self.scratch, ret['bam_file'])
+        remote_md5 = self.md5(downloaded_file)
+        self.assertEqual(expected_md5, remote_md5)
 
 
     def fail_upload_alignment(self, params, error, exception=ValueError, do_startswith=False):
@@ -153,62 +166,61 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
     def test_upload_fail_no_ws(self):
         self.fail_upload_alignment(
-            {
-             'condition': 'bar',
-             'obj_id_or_name': 'foo',
-             'file_path': 'test'
-             },
+            dictmerge({
+                        'condition': 'bar',
+                        'obj_id_or_name': 'foo',
+                        'file_path': 'test'
+                       }, self.more_upload_params),
             'ws_id_or_name parameter is required')
 
 
     def test_upload_fail_no_obj_id(self):
         self.fail_upload_alignment(
-            {
-             'condition': 'bar',
-             'ws_id_or_name': self.getWsName(),
-             'file_path': 'test'
-             },
+            dictmerge({
+                         'condition': 'bar',
+                         'ws_id_or_name': self.getWsName(),
+                         'file_path': 'test'
+                       }, self.more_upload_params),
             'obj_id_or_name parameter is required')
 
 
     def test_upload_fail_no_file(self):
         self.fail_upload_alignment(
-            {
-             'ws_id_or_name': self.getWsName(),
-             'obj_id_or_name': 'foo'
-             },
+            dictmerge({
+                         'ws_id_or_name': self.getWsName(),
+                         'obj_id_or_name': 'foo'
+                       },self.more_upload_params),
             'file_path parameter is required')
 
 
     def test_upload_fail_bad_wsname(self):
         self.fail_upload_alignment(
-            {
-                'ws_id_or_name': '&bad',
-                'obj_id_or_name': 'bar',
-                'file_path': 'foo'
-            },
+            dictmerge({
+                        'ws_id_or_name': '&bad',
+                        'obj_id_or_name': 'bar',
+                        'file_path': 'foo'
+                      }, self.more_upload_params),
             'Illegal character in workspace name &bad: &')
 
 
     def test_upload_fail_non_existant_wsname(self):
         self.fail_upload_alignment(
-            {
-             'ws_id_or_name': '1s',
-             'obj_id_or_name': 'foo',
-             'file_path': 'bar'
-             },
+            dictmerge({
+                         'ws_id_or_name': '1s',
+                         'obj_id_or_name': 'foo',
+                         'file_path': 'bar'
+                       }, self.more_upload_params),
             'No workspace with name 1s exists')
 
 
     def test_upload_fail_non_existant_file(self):
         self.fail_upload_alignment(
-            {
-                'ws_id_or_name': self.getWsName(),
-                'obj_id_or_name': 'foo',
-                'file_path': 'foo'
-            },
+            dictmerge({
+                        'ws_id_or_name': self.getWsName(),
+                        'obj_id_or_name': 'foo',
+                        'file_path': 'foo'
+                    }, self.more_upload_params),
             'File does not exist: foo')
-
 
     # TO DO:  add more tests
 
