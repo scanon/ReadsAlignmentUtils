@@ -224,7 +224,7 @@ public class ReadsAlignmentUtilsClient {
     /**
      * <p>Original spec-file function name: download_alignment</p>
      * <pre>
-     * * Downloads .bam and .bai files along with alignment stats *
+     * * Downloads .bam and optional .bai and .sam files along with alignment stats *
      * </pre>
      * @param   params   instance of type {@link us.kbase.readsalignmentutils.DownloadAlignmentParams DownloadAlignmentParams}
      * @return   instance of type {@link us.kbase.readsalignmentutils.DownloadAlignmentOutput DownloadAlignmentOutput}
