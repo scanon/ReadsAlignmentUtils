@@ -147,7 +147,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         print("====== Returned value from download ======= ")
         pprint(ret)
 
-        downloaded_file = os.path.join(self.scratch, ret['bam_file'])
+        downloaded_file = ret['bam_file']
         remote_md5 = self.md5(downloaded_file)
         self.assertEqual(expected_md5, remote_md5)
 
@@ -193,6 +193,17 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             'file_path parameter is required')
 
 
+    def test_upload_fail_non_existant_file(self):
+        self.fail_upload_alignment(
+            dictmerge({
+                'ws_id_or_name': self.getWsName(),
+                'obj_id_or_name': 'foo',
+                'file_path': 'foo'
+            }, self.more_upload_params),
+            'File does not exist: foo')
+
+
+    '''
     def test_upload_fail_bad_wsname(self):
         self.fail_upload_alignment(
             dictmerge({
@@ -212,15 +223,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                        }, self.more_upload_params),
             'No workspace with name 1s exists')
 
-
-    def test_upload_fail_non_existant_file(self):
-        self.fail_upload_alignment(
-            dictmerge({
-                        'ws_id_or_name': self.getWsName(),
-                        'obj_id_or_name': 'foo',
-                        'file_path': 'foo'
-                    }, self.more_upload_params),
-            'File does not exist: foo')
+    '''
 
     # TO DO:  add more tests
 

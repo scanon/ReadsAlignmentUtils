@@ -34,8 +34,8 @@ the stored alignment.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = "https://github.com/ugswork/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "bef0d1fb61a7eca8167adcb8ab0c5374c300579d"
+    GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
+    GIT_COMMIT_HASH = "27548bb1058d7e020b8b352784351eedbe44f128"
 
     #BEGIN_CLASS_HEADER
 
@@ -182,21 +182,34 @@ the stored alignment.
         # return the results
         return [returnVal]
 
-
     def upload_alignment(self, ctx, params):
         """
         Validates and uploads the reads alignment  *
-        :param params: instance of type "UploadAlignmentParams" (* Input
-           parameters for uploading a reads alignment *) -> structure:
-           parameter "aligned_using" of String, parameter "aligner_version"
-           of String, parameter "library_type" of String, parameter
-           "read_sample_id" of String, parameter "replicate_id" of String,
-           parameter "condition" of String, parameter "platform" of String,
-           parameter "genome_id" of String, parameter "file_path" of String,
-           parameter "ws_id_or_name" of String, parameter "name" of String
-        :returns: instance of type "UploadAlignmentOutput" (*  Output report
-           from uploading a reads alignment  *) -> structure: parameter
-           "obj_ref" of String
+        :param params: instance of type "UploadAlignmentParams" (* Required
+           input parameters for uploading a reads alignment ws_id_or_name  - 
+           Destination: A numeric value is interpreted as an id and an
+           alpha-numeric value is interpreted as a name obj_id_or_name - 
+           Destination: A numeric value is interpreted as an id and an
+           alpha-numeric value as a name and with '/' as obj ref file_path   
+           -  Source: file with the path of the sam or bam file to be
+           uploaded library_type   - ???single_end??? or ???paired_end???
+           condition      - genome_id      -  workspace id of genome
+           annotation that was used to build the alignment read_sample_id - 
+           workspace id of read sample used to make the alignment file *) ->
+           structure: parameter "ws_id_or_name" of String, parameter
+           "obj_id_or_name" of String, parameter "file_path" of String,
+           parameter "library_type" of String, parameter "condition" of
+           String, parameter "genome_id" of String, parameter
+           "read_sample_id" of String, parameter "aligned_using" of String,
+           parameter "aligner_version" of String, parameter "aligner_opts" of
+           mapping from String to String, parameter "replicate_id" of String,
+           parameter "platform" of String, parameter "bowtie2_index" of type
+           "ws_bowtieIndex_id", parameter "sampleset_id" of type
+           "ws_Sampleset_id", parameter "mapped_sample_id" of mapping from
+           String to mapping from String to String
+        :returns: instance of type "UploadAlignmentOutput" (*  Output from
+           uploading a reads alignment  *) -> structure: parameter "obj_ref"
+           of String
         """
         # ctx is the context object
         # return variables are: returnVal
@@ -275,7 +288,6 @@ the stored alignment.
         # return the results
         return [returnVal]
 
-
     def export_alignment(self, ctx, params):
         """
         Wrapper function for use by in-narrative downloaders to download alignments from shock *
@@ -299,28 +311,32 @@ the stored alignment.
         # return the results
         return [output]
 
-
     def download_alignment(self, ctx, params):
         """
-        Downloads .bam and .bai files along with alignment stats *
-        :param params: instance of type "DownloadAlignmentParams" ->
-           structure: parameter "ws_id_or_name" of String, parameter "name"
-           of String, parameter "downloadBAM" of type "boolean" (A boolean -
-           0 for false, 1 for true. @range (0, 1)), parameter "downloadSAM"
-           of type "boolean" (A boolean - 0 for false, 1 for true. @range (0,
-           1)), parameter "downloadBAI" of type "boolean" (A boolean - 0 for
-           false, 1 for true. @range (0, 1))
+        Downloads .bam and optional .bai and .sam files along with alignment stats *
+        :param params: instance of type "DownloadAlignmentParams" (* Required
+           input parameters for downloading a reads alignment ws_id_or_name 
+           -  Destination: A numeric value is interpreted as an id and an
+           alpha-numeric value is interpreted as a name obj_id_or_name - 
+           Destination: A numeric value is interpreted as an id and an
+           alpha-numeric value as a name and with '/' as obj ref *) ->
+           structure: parameter "ws_id_or_name" of String, parameter
+           "obj_id_or_name" of String, parameter "downloadBAM" of type
+           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
+           parameter "downloadSAM" of type "boolean" (A boolean - 0 for
+           false, 1 for true. @range (0, 1)), parameter "downloadBAI" of type
+           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1))
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
-           String, parameter "bam_file" of String, parameter "bai_file" of
-           String, parameter "stats" of type "AlignmentStats" (* @optional
-           singletons multiple_alignments, properly_paired, alignment_rate,
-           unmapped_reads, mapped_sections total_reads, mapped_reads *) ->
-           structure: parameter "properly_paired" of Long, parameter
-           "multiple_alignments" of Long, parameter "singletons" of Long,
-           parameter "alignment_rate" of Double, parameter "unmapped_reads"
-           of Long, parameter "mapped_reads" of Long, parameter "total_reads"
-           of Long
+           String, parameter "bam_file" of String, parameter "sam_file" of
+           String, parameter "bai_file" of String, parameter "stats" of type
+           "AlignmentStats" (* @optional singletons multiple_alignments,
+           properly_paired, alignment_rate, unmapped_reads, mapped_sections
+           total_reads, mapped_reads *) -> structure: parameter
+           "properly_paired" of Long, parameter "multiple_alignments" of
+           Long, parameter "singletons" of Long, parameter "alignment_rate"
+           of Double, parameter "unmapped_reads" of Long, parameter
+           "mapped_reads" of Long, parameter "total_reads" of Long
         """
         # ctx is the context object
         # return variables are: returnVal
@@ -348,9 +364,11 @@ the stored alignment.
 
         ## check error from shock_to_file: to do
 
+        output_dir = self.scratch
+
         file_ret = dfu.shock_to_file({
                                     'shock_id': alignment[0]['data']['file']['id'],
-                                    'file_path': self.scratch
+                                    'file_path': output_dir
                                     })
 
         ## make sure the output file is present: to do
@@ -372,8 +390,8 @@ the stored alignment.
         self.samtools.create_bai_from_bam(bam_file, self.scratch)
 
         returnVal = {'ws_id': ws_name_id,
-                     'bam_file': bam_file,
-                     'bai_file': bai_file
+                     'bam_file': os.path.join(output_dir, bam_file),
+                     'bai_file': os.path.join(output_dir, bai_file)
                     }
 
         #END download_alignment
@@ -384,7 +402,6 @@ the stored alignment.
                              'returnVal is not type dict as required.')
         # return the results
         return [returnVal]
-
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
