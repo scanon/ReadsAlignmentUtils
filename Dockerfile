@@ -6,7 +6,7 @@ MAINTAINER KBase Developer
 # install line here, a git checkout to download code, or run any other
 # installation scripts.
 
-# RUN apt-get update
+RUN apt-get update && apt-get install -y sysstat
 
 # Here we install a python coverage tool and an
 # https library that is out of date in the base image.

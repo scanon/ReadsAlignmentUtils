@@ -128,6 +128,7 @@ $params is a ReadsAlignmentUtils.ValidateAlignmentParams
 $return is a ReadsAlignmentUtils.ValidateAlignmentOutput
 ValidateAlignmentParams is a reference to a hash where the following keys are defined:
 	file_path has a value which is a string
+	ignore has a value which is a reference to a list where each element is a string
 ValidateAlignmentOutput is a reference to a hash where the following keys are defined:
 	validated has a value which is a ReadsAlignmentUtils.boolean
 boolean is an int
@@ -142,6 +143,7 @@ $params is a ReadsAlignmentUtils.ValidateAlignmentParams
 $return is a ReadsAlignmentUtils.ValidateAlignmentOutput
 ValidateAlignmentParams is a reference to a hash where the following keys are defined:
 	file_path has a value which is a string
+	ignore has a value which is a reference to a list where each element is a string
 ValidateAlignmentOutput is a reference to a hash where the following keys are defined:
 	validated has a value which is a ReadsAlignmentUtils.boolean
 boolean is an int
@@ -234,8 +236,11 @@ UploadAlignmentParams is a reference to a hash where the following keys are defi
 	bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
 	sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
 	mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
+	validate has a value which is a ReadsAlignmentUtils.boolean
+	ignore has a value which is a reference to a list where each element is a string
 ws_bowtieIndex_id is a string
 ws_Sampleset_id is a string
+boolean is an int
 UploadAlignmentOutput is a reference to a hash where the following keys are defined:
 	obj_ref has a value which is a string
 
@@ -263,8 +268,11 @@ UploadAlignmentParams is a reference to a hash where the following keys are defi
 	bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
 	sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
 	mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
+	validate has a value which is a ReadsAlignmentUtils.boolean
+	ignore has a value which is a reference to a list where each element is a string
 ws_bowtieIndex_id is a string
 ws_Sampleset_id is a string
+boolean is an int
 UploadAlignmentOutput is a reference to a hash where the following keys are defined:
 	obj_ref has a value which is a string
 
@@ -436,6 +444,8 @@ DownloadAlignmentParams is a reference to a hash where the following keys are de
 	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
+	validate has a value which is a ReadsAlignmentUtils.boolean
+	ignore has a value which is a reference to a list where each element is a string
 boolean is an int
 DownloadAlignmentOutput is a reference to a hash where the following keys are defined:
 	ws_id has a value which is a string
@@ -466,6 +476,8 @@ DownloadAlignmentParams is a reference to a hash where the following keys are de
 	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
+	validate has a value which is a ReadsAlignmentUtils.boolean
+	ignore has a value which is a reference to a list where each element is a string
 boolean is an int
 DownloadAlignmentOutput is a reference to a hash where the following keys are defined:
 	ws_id has a value which is a string
@@ -487,7 +499,7 @@ AlignmentStats is a reference to a hash where the following keys are defined:
 
 =item Description
 
-Downloads .bam and optional .bai and .sam files along with alignment stats *
+Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats *
 
 =back
 
@@ -730,6 +742,7 @@ a string
 <pre>
 a reference to a hash where the following keys are defined:
 file_path has a value which is a string
+ignore has a value which is a reference to a list where each element is a string
 
 </pre>
 
@@ -739,6 +752,7 @@ file_path has a value which is a string
 
 a reference to a hash where the following keys are defined:
 file_path has a value which is a string
+ignore has a value which is a reference to a list where each element is a string
 
 
 =end text
@@ -802,7 +816,7 @@ validated has a value which is a ReadsAlignmentUtils.boolean
 
           file_path      -  Source: file with the path of the sam or bam file to be uploaded
 
-          library_type   - ???single_end??? or ???paired_end???
+          library_type   - ‘single_end’ or ‘paired_end’
           condition      -
           genome_id      -  workspace id of genome annotation that was
                             used to build the alignment
@@ -833,6 +847,8 @@ platform has a value which is a string
 bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
 sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
 mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
+validate has a value which is a ReadsAlignmentUtils.boolean
+ignore has a value which is a reference to a list where each element is a string
 
 </pre>
 
@@ -856,6 +872,8 @@ platform has a value which is a string
 bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
 sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
 mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
+validate has a value which is a ReadsAlignmentUtils.boolean
+ignore has a value which is a reference to a list where each element is a string
 
 
 =end text
@@ -930,6 +948,8 @@ obj_id_or_name has a value which is a string
 downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
+validate has a value which is a ReadsAlignmentUtils.boolean
+ignore has a value which is a reference to a list where each element is a string
 
 </pre>
 
@@ -943,6 +963,8 @@ obj_id_or_name has a value which is a string
 downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
+validate has a value which is a ReadsAlignmentUtils.boolean
+ignore has a value which is a reference to a list where each element is a string
 
 
 =end text

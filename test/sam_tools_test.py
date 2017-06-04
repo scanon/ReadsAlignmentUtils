@@ -87,8 +87,20 @@ class SamToolsTest(unittest.TestCase):
 
 
     def test_invalid_convert_sam_to_bam(self):
-        #TODO need to add validation before writing this method
-        pass
+        opath = '/kb/module/work/'
+        ofile = 'accepted_hits_valid_test_output.bam'
+
+        if os.path.exists(opath + ofile):
+            os.remove(opath + ofile)
+
+        samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
+
+        result = samt.convert_sam_to_sorted_bam(ifile='accepted_hits_invalid.sam',
+                                                ipath='data/samtools',
+                                                ofile=ofile,
+                                                opath=opath, validate=True)
+
+        self.assertEquals(result, 1)
 
 
     def test_valid_convert_bam_to_sam(self):
@@ -112,11 +124,23 @@ class SamToolsTest(unittest.TestCase):
 
 
     def test_invalid_convert_bam_to_sam(self):
-        #TODO need to add validation before writing this method
-        pass
+        opath = '/kb/module/work/'
+        ofile = 'accepted_hits_invalid.sam'
+
+        if os.path.exists(opath + ofile):
+            os.remove(opath + ofile)
+
+        samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
+
+        result = samt.convert_bam_to_sam(ifile='accepted_hits_invalid.bam',
+                                         ipath='data/samtools',
+                                         ofile=ofile,
+                                         opath=opath, validate=True)
+
+        self.assertEquals(result, 1)
 
 
-    def test_valid_create_bai_to_bam(self):
+    def test_valid_create_bai_from_bam(self):
         opath = '/kb/module/work/'
         ofile = 'accepted_hits_valid_test_output.bai'
 
@@ -136,9 +160,21 @@ class SamToolsTest(unittest.TestCase):
                           '479a05f10c62e47c68501b7551d44593')
 
 
-    def test_invalid_create_bai_to_bam(self):
-        #TODO need to add validation before writing this method
-        pass
+    def test_invalid_create_bai_from_bam(self):
+        opath = '/kb/module/work/'
+        ofile = 'accepted_hits_valid_test_output.bai'
+
+        if os.path.exists(opath + ofile):
+            os.remove(opath + ofile)
+
+        samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
+
+        result = samt.create_bai_from_bam(ifile='accepted_hits_invalid.bam',
+                                          ipath='data/samtools',
+                                          ofile=ofile,
+                                          opath=opath, validate=True)
+
+        self.assertEquals(result, 1)
 
 
     def test_get_stats(self):

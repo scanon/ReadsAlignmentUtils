@@ -37,7 +37,8 @@ class ReadsAlignmentUtils(object):
         """
         :param params: instance of type "ValidateAlignmentParams" (* Input
            parameters for validating a reads alignment *) -> structure:
-           parameter "file_path" of String
+           parameter "file_path" of String, parameter "ignore" of list of
+           String
         :returns: instance of type "ValidateAlignmentOutput" (* Results from
            validate alignment *) -> structure: parameter "validated" of type
            "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1))
@@ -56,21 +57,23 @@ class ReadsAlignmentUtils(object):
            Destination: A numeric value is interpreted as an id and an
            alpha-numeric value as a name and with '/' as obj ref file_path   
            -  Source: file with the path of the sam or bam file to be
-           uploaded library_type   - ???single_end??? or ???paired_end???
-           condition      - genome_id      -  workspace id of genome
-           annotation that was used to build the alignment read_sample_id - 
-           workspace id of read sample used to make the alignment file *) ->
-           structure: parameter "ws_id_or_name" of String, parameter
-           "obj_id_or_name" of String, parameter "file_path" of String,
-           parameter "library_type" of String, parameter "condition" of
-           String, parameter "genome_id" of String, parameter
-           "read_sample_id" of String, parameter "aligned_using" of String,
-           parameter "aligner_version" of String, parameter "aligner_opts" of
-           mapping from String to String, parameter "replicate_id" of String,
-           parameter "platform" of String, parameter "bowtie2_index" of type
-           "ws_bowtieIndex_id", parameter "sampleset_id" of type
-           "ws_Sampleset_id", parameter "mapped_sample_id" of mapping from
-           String to mapping from String to String
+           uploaded library_type   - ‘single_end’ or ‘paired_end’ condition  
+           - genome_id      -  workspace id of genome annotation that was
+           used to build the alignment read_sample_id -  workspace id of read
+           sample used to make the alignment file *) -> structure: parameter
+           "ws_id_or_name" of String, parameter "obj_id_or_name" of String,
+           parameter "file_path" of String, parameter "library_type" of
+           String, parameter "condition" of String, parameter "genome_id" of
+           String, parameter "read_sample_id" of String, parameter
+           "aligned_using" of String, parameter "aligner_version" of String,
+           parameter "aligner_opts" of mapping from String to String,
+           parameter "replicate_id" of String, parameter "platform" of
+           String, parameter "bowtie2_index" of type "ws_bowtieIndex_id",
+           parameter "sampleset_id" of type "ws_Sampleset_id", parameter
+           "mapped_sample_id" of mapping from String to mapping from String
+           to String, parameter "validate" of type "boolean" (A boolean - 0
+           for false, 1 for true. @range (0, 1)), parameter "ignore" of list
+           of String
         :returns: instance of type "UploadAlignmentOutput" (*  Output from
            uploading a reads alignment  *) -> structure: parameter "obj_ref"
            of String
@@ -93,7 +96,7 @@ class ReadsAlignmentUtils(object):
 
     def download_alignment(self, params, context=None):
         """
-        Downloads .bam and optional .bai and .sam files along with alignment stats *
+        Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats *
         :param params: instance of type "DownloadAlignmentParams" (* Required
            input parameters for downloading a reads alignment ws_id_or_name 
            -  Destination: A numeric value is interpreted as an id and an
@@ -105,7 +108,9 @@ class ReadsAlignmentUtils(object):
            "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
            parameter "downloadSAM" of type "boolean" (A boolean - 0 for
            false, 1 for true. @range (0, 1)), parameter "downloadBAI" of type
-           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1))
+           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
+           parameter "validate" of type "boolean" (A boolean - 0 for false, 1
+           for true. @range (0, 1)), parameter "ignore" of list of String
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "bam_file" of String, parameter "sam_file" of
