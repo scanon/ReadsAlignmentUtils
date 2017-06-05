@@ -43,14 +43,16 @@ the stored alignment.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = ""
-    GIT_COMMIT_HASH = "9e687b7a19f8a9ab734edab4a9282b44af0b68aa"
+    GIT_URL = "https://github.com/ugswork/ReadsAlignmentUtils.git"
+    GIT_COMMIT_HASH = "040cd56fec5935792454b1b6416aebae7c02697b"
 
     #BEGIN_CLASS_HEADER
 
-    PARAM_IN_WS = 'ws_id_or_name'
-    PARAM_IN_OBJ = 'obj_id_or_name'
+    #PARAM_IN_WS = 'ws_id_or_name'
+    #PARAM_IN_OBJ = 'obj_id_or_name'
     PARAM_IN_FILE = 'file_path'
+    PARAM_IN_SRC_REF = 'source_ref'
+    PARAM_IN_DST_REF = 'destination_ref'
     PARAM_IN_LIB_TYPE = 'library_type'
     PARAM_IN_CONDITION = 'condition'
     PARAM_IN_SAMPLE_ID = 'read_sample_id'
@@ -90,7 +92,9 @@ the stored alignment.
 
         ###  Checks the validity of workspace and object params and return them
 
-        ws_name_id = params.get(self.PARAM_IN_WS)
+        dst_ref = params.get(self.PARAM_IN_DST_REF)
+
+        ws_name_id, obj_name_id = os.path.split(dst_ref)
 
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
@@ -104,8 +108,6 @@ the stored alignment.
 
         self.log('Obtained workspace name/id ' + str(ws_name_id))
 
-        obj_name_id = params[self.PARAM_IN_OBJ]
-
         return ws_name_id, obj_name_id
 
 
@@ -113,8 +115,7 @@ the stored alignment.
 
         ###  Checks the presence and validity of upload alignment params
 
-        self._check_required_param(params, [self.PARAM_IN_WS,
-                                            self.PARAM_IN_OBJ,
+        self._check_required_param(params, [self.PARAM_IN_DST_REF,
                                             self.PARAM_IN_FILE,
                                             self.PARAM_IN_LIB_TYPE,
                                             self.PARAM_IN_CONDITION,
@@ -143,16 +144,6 @@ the stored alignment.
             self.log(str(wse))
             raise
         return info
-
-
-    def _proc_download_alignment_params(self, ctx, params):
-
-        ###  Checks the presence and validity of download alignment params
-
-        self._check_required_param(params, [self.PARAM_IN_WS,
-                                           self.PARAM_IN_OBJ])
-
-        return self._proc_ws_obj_params(ctx, params)
 
 
     def _get_aligner_stats(self, file):
@@ -236,29 +227,28 @@ the stored alignment.
         """
         Validates and uploads the reads alignment  *
         :param params: instance of type "UploadAlignmentParams" (* Required
-           input parameters for uploading a reads alignment ws_id_or_name  - 
-           Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value is interpreted as a name obj_id_or_name - 
-           Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value as a name and with '/' as obj ref file_path   
-           -  Source: file with the path of the sam or bam file to be
-           uploaded library_type   - ‘single_end’ or ‘paired_end’ condition  
-           - genome_id      -  workspace id of genome annotation that was
-           used to build the alignment read_sample_id -  workspace id of read
-           sample used to make the alignment file *) -> structure: parameter
-           "ws_id_or_name" of String, parameter "obj_id_or_name" of String,
-           parameter "file_path" of String, parameter "library_type" of
-           String, parameter "condition" of String, parameter "genome_id" of
-           String, parameter "read_sample_id" of String, parameter
-           "aligned_using" of String, parameter "aligner_version" of String,
-           parameter "aligner_opts" of mapping from String to String,
-           parameter "replicate_id" of String, parameter "platform" of
-           String, parameter "bowtie2_index" of type "ws_bowtieIndex_id",
-           parameter "sampleset_id" of type "ws_Sampleset_id", parameter
-           "mapped_sample_id" of mapping from String to mapping from String
-           to String, parameter "validate" of type "boolean" (A boolean - 0
-           for false, 1 for true. @range (0, 1)), parameter "ignore" of list
-           of String
+           input parameters for uploading a reads alignment string
+           destination_ref -  object reference of alignment destination. The
+           object ref is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id
+           is the workspace name or id and obj_name_or_id is the object name
+           or id file_path         -  Source: file with the path of the sam
+           or bam file to be uploaded library_type      - ???single_end??? or
+           ???paired_end??? condition         - genome_id         - 
+           workspace id of genome annotation that was used to build the
+           alignment read_sample_id    -  workspace id of read sample used to
+           make the alignment file *) -> structure: parameter
+           "destination_ref" of String, parameter "file_path" of String,
+           parameter "library_type" of String, parameter "condition" of
+           String, parameter "genome_id" of String, parameter
+           "read_sample_id" of String, parameter "aligned_using" of String,
+           parameter "aligner_version" of String, parameter "aligner_opts" of
+           mapping from String to String, parameter "replicate_id" of String,
+           parameter "platform" of String, parameter "bowtie2_index" of type
+           "ws_bowtieIndex_id", parameter "sampleset_id" of type
+           "ws_Sampleset_id", parameter "mapped_sample_id" of mapping from
+           String to mapping from String to String, parameter "validate" of
+           type "boolean" (A boolean - 0 for false, 1 for true. @range (0,
+           1)), parameter "ignore" of list of String
         :returns: instance of type "UploadAlignmentOutput" (*  Output from
            uploading a reads alignment  *) -> structure: parameter "obj_ref"
            of String
@@ -332,19 +322,18 @@ the stored alignment.
         """
         Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats *
         :param params: instance of type "DownloadAlignmentParams" (* Required
-           input parameters for downloading a reads alignment ws_id_or_name 
-           -  Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value is interpreted as a name obj_id_or_name - 
-           Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value as a name and with '/' as obj ref *) ->
-           structure: parameter "ws_id_or_name" of String, parameter
-           "obj_id_or_name" of String, parameter "downloadBAM" of type
-           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
-           parameter "downloadSAM" of type "boolean" (A boolean - 0 for
-           false, 1 for true. @range (0, 1)), parameter "downloadBAI" of type
-           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
-           parameter "validate" of type "boolean" (A boolean - 0 for false, 1
-           for true. @range (0, 1)), parameter "ignore" of list of String
+           input parameters for downloading a reads alignment string
+           source_ref -  object reference of alignment source. The object ref
+           is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
+           workspace name or id and obj_name_or_id is the object name or id
+           *) -> structure: parameter "source_ref" of String, parameter
+           "downloadBAM" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "downloadSAM" of type "boolean" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "downloadBAI" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "validate" of type "boolean" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "ignore" of list of String
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "bam_file" of String, parameter "sam_file" of
@@ -364,10 +353,13 @@ the stored alignment.
         self.log('Running download_alignment with params:\n' +
                  pformat(params))
 
-        ws_name_id, obj_name_id = self._proc_download_alignment_params(ctx, params)
+        inref = params.get(self.PARAM_IN_SRC_REF)
+        if not inref:
+            raise ValueError('No source_ref specified')
 
-        obj_ref = obj_name_id if '/' in obj_name_id else \
-            (str(ws_name_id) + '/' + str(obj_name_id))
+        info = self._get_ws_info(inref)
+
+        obj_ref = str(info[6]) + '/' + str(info[0])
 
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
@@ -399,7 +391,7 @@ the stored alignment.
 
         dir, file_name, file_base, file_ext = self._get_file_path_info(bam_file)
 
-        returnVal = {'ws_id': ws_name_id}
+        returnVal = {'ws_id': info[6]}
 
         if (params.get('downloadBAM', True)):
             bam_file_path = os.path.join(output_dir, bam_file)
@@ -442,8 +434,12 @@ the stored alignment.
     def export_alignment(self, ctx, params):
         """
         Wrapper function for use by in-narrative downloaders to download alignments from shock *
-        :param params: instance of type "ExportParams" -> structure:
-           parameter "input_ref" of String
+        :param params: instance of type "ExportParams" (* Required input
+           parameters for exporting a reads alignment string source_ref - 
+           object reference of alignment source. The object ref is
+           'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
+           workspace name or id and obj_name_or_id is the object name or id
+           *) -> structure: parameter "source_ref" of String
         :returns: instance of type "ExportOutput" -> structure: parameter
            "shock_id" of String
         """
@@ -451,14 +447,13 @@ the stored alignment.
         # return variables are: output
         #BEGIN export_alignment
 
-        inref = params.get('input_ref')
+        inref = params.get(self.PARAM_IN_SRC_REF)
         if not inref:
-            raise ValueError('No obj_ref specified')
+            raise ValueError('No source_ref specified')
 
         info = self._get_ws_info(inref)
 
-        files = self.download_alignment(ctx, {self.PARAM_IN_WS: info[7],
-                                              self.PARAM_IN_OBJ: inref})[0]
+        files = self.download_alignment(ctx, {self.PARAM_IN_SRC_REF: inref})[0]
 
         # create the output directory and move the file there
         tempdir = tempfile.mkdtemp(dir=self.scratch)

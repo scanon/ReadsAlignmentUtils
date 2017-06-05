@@ -204,24 +204,6 @@ public class ReadsAlignmentUtilsClient {
     }
 
     /**
-     * <p>Original spec-file function name: export_alignment</p>
-     * <pre>
-     * * Wrapper function for use by in-narrative downloaders to download alignments from shock *
-     * </pre>
-     * @param   params   instance of type {@link us.kbase.readsalignmentutils.ExportParams ExportParams}
-     * @return   parameter "output" of type {@link us.kbase.readsalignmentutils.ExportOutput ExportOutput}
-     * @throws IOException if an IO exception occurs
-     * @throws JsonClientException if a JSON RPC exception occurs
-     */
-    public ExportOutput exportAlignment(ExportParams params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
-        List<Object> args = new ArrayList<Object>();
-        args.add(params);
-        TypeReference<List<ExportOutput>> retType = new TypeReference<List<ExportOutput>>() {};
-        List<ExportOutput> res = caller.jsonrpcCall("ReadsAlignmentUtils.export_alignment", args, retType, true, true, jsonRpcContext, this.serviceVersion);
-        return res.get(0);
-    }
-
-    /**
      * <p>Original spec-file function name: download_alignment</p>
      * <pre>
      * * Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats *
@@ -236,6 +218,24 @@ public class ReadsAlignmentUtilsClient {
         args.add(params);
         TypeReference<List<DownloadAlignmentOutput>> retType = new TypeReference<List<DownloadAlignmentOutput>>() {};
         List<DownloadAlignmentOutput> res = caller.jsonrpcCall("ReadsAlignmentUtils.download_alignment", args, retType, true, true, jsonRpcContext, this.serviceVersion);
+        return res.get(0);
+    }
+
+    /**
+     * <p>Original spec-file function name: export_alignment</p>
+     * <pre>
+     * * Wrapper function for use by in-narrative downloaders to download alignments from shock *
+     * </pre>
+     * @param   params   instance of type {@link us.kbase.readsalignmentutils.ExportParams ExportParams}
+     * @return   parameter "output" of type {@link us.kbase.readsalignmentutils.ExportOutput ExportOutput}
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public ExportOutput exportAlignment(ExportParams params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        args.add(params);
+        TypeReference<List<ExportOutput>> retType = new TypeReference<List<ExportOutput>>() {};
+        List<ExportOutput> res = caller.jsonrpcCall("ReadsAlignmentUtils.export_alignment", args, retType, true, true, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
