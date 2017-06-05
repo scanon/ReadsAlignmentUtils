@@ -331,8 +331,9 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                   'downloadBAI': 'True'}
 
         ret = self.getImpl().download_alignment(self.ctx, params)[0]
-        print('\n== Output from download_alignment:')
+        print("=================  DOWNLOADED FILES =================== ")
         pprint(ret)
+        print("========================================================")
 
         bam_file_path = ret['bam_file']
         out_dir, bam_file_name = os.path.split(bam_file_path)
