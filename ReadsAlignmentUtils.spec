@@ -45,27 +45,25 @@ module ReadsAlignmentUtils {
 
       Required input parameters for uploading a reads alignment
 
-      ws_id_or_name  -  Destination: A numeric value is interpreted as an id and
-                            an alpha-numeric value is interpreted as a name
+      string destination_ref -  object reference of alignment destination. The
+                                object ref is 'ws_name_or_id/obj_name_or_id'
+                                where ws_name_or_id is the workspace name or id
+                                and obj_name_or_id is the object name or id
 
-      obj_id_or_name -  Destination: A numeric value is interpreted as an id and
-	                        an alpha-numeric value as a name and with '/' as obj ref
+	  file_path         -  Source: file with the path of the sam or bam file to be uploaded
 
-	  file_path      -  Source: file with the path of the sam or bam file to be uploaded
-
-	  library_type   - ‘single_end’ or ‘paired_end’
-	  condition      -
-	  genome_id      -  workspace id of genome annotation that was
+	  library_type      - ‘single_end’ or ‘paired_end’
+	  condition         -
+	  genome_id         -  workspace id of genome annotation that was
                             used to build the alignment
-      read_sample_id -  workspace id of read sample used to make
+      read_sample_id    -  workspace id of read sample used to make
                             the alignment file
 
     **/
 
    typedef structure {
 
-       string ws_id_or_name;
-	   string obj_id_or_name;
+       string destination_ref;
        string file_path;
 
 	   string library_type;
@@ -112,17 +110,15 @@ module ReadsAlignmentUtils {
 
       Required input parameters for downloading a reads alignment
 
-      ws_id_or_name  -  Destination: A numeric value is interpreted as an id and
-                            an alpha-numeric value is interpreted as a name
-
-      obj_id_or_name -  Destination: A numeric value is interpreted as an id and
-	                        an alpha-numeric value as a name and with '/' as obj ref
+      string source_ref -  object reference of alignment source. The
+                           object ref is 'ws_name_or_id/obj_name_or_id'
+                           where ws_name_or_id is the workspace name or id
+                           and obj_name_or_id is the object name or id
     **/
 
      typedef structure {
 
-        string ws_id_or_name;
-        string obj_id_or_name;
+        string source_ref;
 
         boolean downloadBAM;   /* Optional - default is true */
         boolean downloadSAM;   /* Optional - default is false */
@@ -166,12 +162,22 @@ module ReadsAlignmentUtils {
 
      /** Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats **/
 
-       funcdef download_alignment(DownloadAlignmentParams params)
+      funcdef download_alignment(DownloadAlignmentParams params)
                          returns (DownloadAlignmentOutput)
                          authentication required;
 
+    /**
+
+      Required input parameters for exporting a reads alignment
+
+      string source_ref -  object reference of alignment source. The
+                           object ref is 'ws_name_or_id/obj_name_or_id'
+                           where ws_name_or_id is the workspace name or id
+                           and obj_name_or_id is the object name or id
+    **/
+
      typedef structure {
-         string input_ref;   /* workspace object reference */
+         string source_ref;   /* workspace object reference */
      } ExportParams;
 
      typedef structure {

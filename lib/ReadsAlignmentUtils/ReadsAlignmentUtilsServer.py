@@ -341,14 +341,14 @@ class Application(object):
                              name='ReadsAlignmentUtils.upload_alignment',
                              types=[dict])
         self.method_authentication['ReadsAlignmentUtils.upload_alignment'] = 'required'  # noqa
-        self.rpc_service.add(impl_ReadsAlignmentUtils.export_alignment,
-                             name='ReadsAlignmentUtils.export_alignment',
-                             types=[dict])
-        self.method_authentication['ReadsAlignmentUtils.export_alignment'] = 'required'  # noqa
         self.rpc_service.add(impl_ReadsAlignmentUtils.download_alignment,
                              name='ReadsAlignmentUtils.download_alignment',
                              types=[dict])
         self.method_authentication['ReadsAlignmentUtils.download_alignment'] = 'required'  # noqa
+        self.rpc_service.add(impl_ReadsAlignmentUtils.export_alignment,
+                             name='ReadsAlignmentUtils.export_alignment',
+                             types=[dict])
+        self.method_authentication['ReadsAlignmentUtils.export_alignment'] = 'required'  # noqa
         self.rpc_service.add(impl_ReadsAlignmentUtils.status,
                              name='ReadsAlignmentUtils.status',
                              types=[dict])

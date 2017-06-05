@@ -6,6 +6,8 @@ import shutil
 import hashlib
 import requests
 import inspect
+import tempfile
+from zipfile import ZipFile
 
 from os import environ
 try:
@@ -224,11 +226,16 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         ###  set up test data for download
 
-        test_file_bam = {'file': 'data/samtools/accepted_hits_sorted.bam',
+        test_bam = {'file': 'data/samtools/accepted_hits_sorted.bam',
                          'name': 'accepted_hits_sorted.bam',
                          'type': ''}
 
-        cls.uploadTestData('test_download_bam', cls.more_upload_params, test_file_bam)
+        test_sam = {'file': 'data/samtools/accepted_hits.sam',
+                    'name': 'accepted_hits.sam',
+                    'type': ''}
+
+        cls.uploadTestData('test_download_bam', cls.more_upload_params, test_bam)
+        cls.uploadTestData('test_download_sam', cls.more_upload_params, test_sam)
 
 
     @classmethod
@@ -265,7 +272,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         ref = self.getImpl().upload_alignment(self.ctx, params)[0]
 
         obj = self.dfu.get_objects(
-            {'object_refs': [self.getWsName() + '/' + params.get('obj_id_or_name')]})['data'][0]
+            {'object_refs': [params.get('destination_ref')]})['data'][0]
 
         print("============ GET OBJECTS OUTPUT ==============")
         pprint(obj)
@@ -292,21 +299,19 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
     def test_upload_success_bam(self):
 
-        params = dictmerge({'ws_id_or_name': self.getWsName(),
-                            'obj_id_or_name': 'test_bam',
+        params = dictmerge({'destination_ref': self.getWsName() + '/test_download_bam',
                             'file_path': 'accepted_hits_sorted.bam',
                             'validate': 'True'
                             }, self.more_upload_params)
         expected = {'file_name': 'accepted_hits_sorted.bam',
                     'size': 741290,
-                    'md5':'96c59589b0ed7338ff27de1881cf40b3' }
+                    'md5': '96c59589b0ed7338ff27de1881cf40b3' }
         self.upload_alignment_success(params, expected)
 
 
     def test_upload_success_sam(self):
 
-        params = dictmerge({'ws_id_or_name': self.getWsName(),
-                            'obj_id_or_name': 'test_upload_bam',
+        params = dictmerge({'destination_ref': self.getWsName() + '/test_download_sam',
                             'file_path': 'accepted_hits.sam',
                             'validate': 'True'
                             }, self.more_upload_params)
@@ -317,12 +322,13 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
 
     def download_alignment_success(self, obj_name, expected):
-        self.maxDiff = None
+
         test_name = inspect.stack()[1][3]
         print('\n**** starting expected downlaod success test: ' + test_name + ' ***\n')
 
-        params = {'ws_id_or_name': self.getWsName(),
-                  'obj_id_or_name': obj_name}
+        params = {'source_ref': self.getWsName() + '/' + obj_name,
+                  'downloadSAM': 'True',
+                  'downloadBAI': 'True'}
 
         ret = self.getImpl().download_alignment(self.ctx, params)[0]
         print('\n== Output from download_alignment:')
@@ -345,12 +351,77 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                                          'md5': '96c59589b0ed7338ff27de1881cf40b3'})
 
 
+    def export_alignment_success(self, staged_name, bam_md5):
+
+        test_name = inspect.stack()[1][3]
+        print('\n*** starting expected export pass test: ' + test_name + ' **')
+        shocknode = self.getImpl().export_alignment(
+            self.ctx,
+            {'source_ref': self.staged[staged_name]['ref']})[0]['shock_id']
+        node_url = self.shockURL + '/node/' + shocknode
+        headers = {'Authorization': 'OAuth ' + self.token}
+        r = requests.get(node_url, headers=headers, allow_redirects=True)
+        fn = r.json()['data']['file']['name']
+        self.assertEquals(fn, staged_name + '.zip')
+        tempdir = tempfile.mkdtemp(dir=self.scratch)
+        file_path = os.path.join(tempdir, test_name) + '.zip'
+        print('zip file path: ' + file_path)
+        print('downloading shocknode ' + shocknode)
+        with open(file_path, 'wb') as fhandle:
+            r = requests.get(node_url + '?download_raw', stream=True,
+                             headers=headers, allow_redirects=True)
+            for chunk in r.iter_content(1024):
+                if not chunk:
+                    break
+                fhandle.write(chunk)
+        with ZipFile(file_path) as z:
+            z.extractall(tempdir)
+        print('zip file contents: ' + str(os.listdir(tempdir)))
+        foundBAM = False
+        for f in os.listdir(tempdir):
+            if '.bam' in f :
+                foundBAM = True
+                print('BAM file: ' + f)
+                with open(os.path.join(tempdir, f)) as fl:
+                    md5 = hashlib.md5(fl.read()).hexdigest()
+                    self.assertEqual(md5, bam_md5)
+        if not foundBAM:
+            raise TestError('no BAM file')
+
+
     def test_success_export_alignment(self):
 
-        self.getImpl().export_alignment(self.ctx, {'input_ref': self.getWsName() + '/test_download_bam'})
+        self.export_alignment_success('test_download_bam', '96c59589b0ed7338ff27de1881cf40b3')
 
 
+    def test_valid_validate_alignment(self):
+        params = {'file_path':'data/samtools/accepted_hits.sam',
+                   'ignore':['MATE_NOT_FOUND','MISSING_READ_GROUP',
+                         'INVALID_MAPPING_QUALITY']}
 
+        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
+
+        self.assertEquals(True, ret['validated'])
+
+        params = {'file_path': 'data/samtools/accepted_hits.sam'}
+
+        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
+
+        self.assertEquals(True, ret['validated'])
+
+
+    def test_valid_invalidate_alignment(self):
+        params = {'file_path': 'data/samtools/accepted_hits_invalid.sam',
+                  'ignore': ['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
+                             'INVALID_MAPPING_QUALITY']}
+
+        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
+
+        self.assertEquals(False, ret['validated'])
+
+
+    '''
+    
     def fail_upload_alignment(self, params, error, exception=ValueError, do_startswith=False):
         with self.assertRaises(exception) as context:
             self.getImpl().upload_alignment(self.ctx, params)
@@ -361,8 +432,8 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                                 error))
         else:
             self.assertEqual(error, str(context.exception.message))
-
-
+            
+            
     def test_upload_fail_no_ws(self):
         self.fail_upload_alignment(
             dictmerge({
@@ -402,52 +473,25 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             'File does not exist: foo')
 
 
-    '''
     def test_upload_fail_bad_wsname(self):
         self.fail_upload_alignment(
             dictmerge({
                         'ws_id_or_name': '&bad',
-                        'obj_id_or_name': 'bar',
-                        'file_path': 'foo'
-                      }, self.more_upload_params),
+                           'obj_id_or_name': 'bar',
+                         'file_path': 'foo'
+                          }, self.more_upload_params),
             'Illegal character in workspace name &bad: &')
 
 
     def test_upload_fail_non_existant_wsname(self):
         self.fail_upload_alignment(
             dictmerge({
-                         'ws_id_or_name': '1s',
-                         'obj_id_or_name': 'foo',
-                         'file_path': 'bar'
-                       }, self.more_upload_params),
+                        'ws_id_or_name': '1s',
+                        'obj_id_or_name': 'foo',
+                        'file_path': 'bar'
+                      }, self.more_upload_params),
             'No workspace with name 1s exists')
     '''
-
-    def test_valid_validate_alignment(self):
-        params = {'file_path':'data/samtools/accepted_hits.sam',
-                   'ignore':['MATE_NOT_FOUND','MISSING_READ_GROUP',
-                         'INVALID_MAPPING_QUALITY']}
-
-        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
-
-        self.assertEquals(True, ret['validated'])
-
-        params = {'file_path': 'data/samtools/accepted_hits.sam'}
-
-        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
-
-        self.assertEquals(True, ret['validated'])
-
-
-    def test_valid_invalidate_alignment(self):
-        params = {'file_path': 'data/samtools/accepted_hits_invalid.sam',
-                  'ignore': ['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
-                             'INVALID_MAPPING_QUALITY']}
-
-        ret = self.getImpl().validate_alignment(self.ctx, params)[0]
-
-        self.assertEquals(False, ret['validated'])
-
 
     # TO DO:  add more tests
 

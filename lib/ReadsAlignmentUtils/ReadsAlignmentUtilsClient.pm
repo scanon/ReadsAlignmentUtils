@@ -221,8 +221,7 @@ boolean is an int
 $params is a ReadsAlignmentUtils.UploadAlignmentParams
 $return is a ReadsAlignmentUtils.UploadAlignmentOutput
 UploadAlignmentParams is a reference to a hash where the following keys are defined:
-	ws_id_or_name has a value which is a string
-	obj_id_or_name has a value which is a string
+	destination_ref has a value which is a string
 	file_path has a value which is a string
 	library_type has a value which is a string
 	condition has a value which is a string
@@ -253,8 +252,7 @@ UploadAlignmentOutput is a reference to a hash where the following keys are defi
 $params is a ReadsAlignmentUtils.UploadAlignmentParams
 $return is a ReadsAlignmentUtils.UploadAlignmentOutput
 UploadAlignmentParams is a reference to a hash where the following keys are defined:
-	ws_id_or_name has a value which is a string
-	obj_id_or_name has a value which is a string
+	destination_ref has a value which is a string
 	file_path has a value which is a string
 	library_type has a value which is a string
 	condition has a value which is a string
@@ -335,96 +333,6 @@ Validates and uploads the reads alignment  *
  
 
 
-=head2 export_alignment
-
-  $output = $obj->export_alignment($params)
-
-=over 4
-
-=item Parameter and return types
-
-=begin html
-
-<pre>
-$params is a ReadsAlignmentUtils.ExportParams
-$output is a ReadsAlignmentUtils.ExportOutput
-ExportParams is a reference to a hash where the following keys are defined:
-	input_ref has a value which is a string
-ExportOutput is a reference to a hash where the following keys are defined:
-	shock_id has a value which is a string
-
-</pre>
-
-=end html
-
-=begin text
-
-$params is a ReadsAlignmentUtils.ExportParams
-$output is a ReadsAlignmentUtils.ExportOutput
-ExportParams is a reference to a hash where the following keys are defined:
-	input_ref has a value which is a string
-ExportOutput is a reference to a hash where the following keys are defined:
-	shock_id has a value which is a string
-
-
-=end text
-
-=item Description
-
-Wrapper function for use by in-narrative downloaders to download alignments from shock *
-
-=back
-
-=cut
-
- sub export_alignment
-{
-    my($self, @args) = @_;
-
-# Authentication: required
-
-    if ((my $n = @args) != 1)
-    {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function export_alignment (received $n, expecting 1)");
-    }
-    {
-	my($params) = @args;
-
-	my @_bad_arguments;
-        (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
-        if (@_bad_arguments) {
-	    my $msg = "Invalid arguments passed to export_alignment:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'export_alignment');
-	}
-    }
-
-    my $url = $self->{url};
-    my $result = $self->{client}->call($url, $self->{headers}, {
-	    method => "ReadsAlignmentUtils.export_alignment",
-	    params => \@args,
-    });
-    if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'export_alignment',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
-	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
-	}
-    } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method export_alignment",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'export_alignment',
-				       );
-    }
-}
- 
-
-
 =head2 download_alignment
 
   $return = $obj->download_alignment($params)
@@ -439,8 +347,7 @@ Wrapper function for use by in-narrative downloaders to download alignments from
 $params is a ReadsAlignmentUtils.DownloadAlignmentParams
 $return is a ReadsAlignmentUtils.DownloadAlignmentOutput
 DownloadAlignmentParams is a reference to a hash where the following keys are defined:
-	ws_id_or_name has a value which is a string
-	obj_id_or_name has a value which is a string
+	source_ref has a value which is a string
 	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
@@ -471,8 +378,7 @@ AlignmentStats is a reference to a hash where the following keys are defined:
 $params is a ReadsAlignmentUtils.DownloadAlignmentParams
 $return is a ReadsAlignmentUtils.DownloadAlignmentOutput
 DownloadAlignmentParams is a reference to a hash where the following keys are defined:
-	ws_id_or_name has a value which is a string
-	obj_id_or_name has a value which is a string
+	source_ref has a value which is a string
 	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
@@ -551,6 +457,96 @@ Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignme
     }
 }
  
+
+
+=head2 export_alignment
+
+  $output = $obj->export_alignment($params)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$params is a ReadsAlignmentUtils.ExportParams
+$output is a ReadsAlignmentUtils.ExportOutput
+ExportParams is a reference to a hash where the following keys are defined:
+	source_ref has a value which is a string
+ExportOutput is a reference to a hash where the following keys are defined:
+	shock_id has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$params is a ReadsAlignmentUtils.ExportParams
+$output is a ReadsAlignmentUtils.ExportOutput
+ExportParams is a reference to a hash where the following keys are defined:
+	source_ref has a value which is a string
+ExportOutput is a reference to a hash where the following keys are defined:
+	shock_id has a value which is a string
+
+
+=end text
+
+=item Description
+
+Wrapper function for use by in-narrative downloaders to download alignments from shock *
+
+=back
+
+=cut
+
+ sub export_alignment
+{
+    my($self, @args) = @_;
+
+# Authentication: required
+
+    if ((my $n = @args) != 1)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function export_alignment (received $n, expecting 1)");
+    }
+    {
+	my($params) = @args;
+
+	my @_bad_arguments;
+        (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to export_alignment:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+								   method_name => 'export_alignment');
+	}
+    }
+
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReadsAlignmentUtils.export_alignment",
+	    params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'export_alignment',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method export_alignment",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'export_alignment',
+				       );
+    }
+}
+ 
   
 sub status
 {
@@ -594,16 +590,16 @@ sub version {
             Bio::KBase::Exceptions::JSONRPC->throw(
                 error => $result->error_message,
                 code => $result->content->{code},
-                method_name => 'download_alignment',
+                method_name => 'export_alignment',
             );
         } else {
             return wantarray ? @{$result->result} : $result->result->[0];
         }
     } else {
         Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method download_alignment",
+            error => "Error invoking method export_alignment",
             status_line => $self->{client}->status_line,
-            method_name => 'download_alignment',
+            method_name => 'export_alignment',
         );
     }
 }
@@ -808,19 +804,18 @@ validated has a value which is a ReadsAlignmentUtils.boolean
 
       Required input parameters for uploading a reads alignment
 
-      ws_id_or_name  -  Destination: A numeric value is interpreted as an id and
-                            an alpha-numeric value is interpreted as a name
+      string destination_ref -  object reference of alignment destination. The
+                                object ref is 'ws_name_or_id/obj_name_or_id'
+                                where ws_name_or_id is the workspace name or id
+                                and obj_name_or_id is the object name or id
 
-      obj_id_or_name -  Destination: A numeric value is interpreted as an id and
-                                an alpha-numeric value as a name and with '/' as obj ref
+          file_path         -  Source: file with the path of the sam or bam file to be uploaded
 
-          file_path      -  Source: file with the path of the sam or bam file to be uploaded
-
-          library_type   - ‘single_end’ or ‘paired_end’
-          condition      -
-          genome_id      -  workspace id of genome annotation that was
+          library_type      - ???single_end??? or ???paired_end???
+          condition         -
+          genome_id         -  workspace id of genome annotation that was
                             used to build the alignment
-      read_sample_id -  workspace id of read sample used to make
+      read_sample_id    -  workspace id of read sample used to make
                             the alignment file
 
     *
@@ -832,8 +827,7 @@ validated has a value which is a ReadsAlignmentUtils.boolean
 
 <pre>
 a reference to a hash where the following keys are defined:
-ws_id_or_name has a value which is a string
-obj_id_or_name has a value which is a string
+destination_ref has a value which is a string
 file_path has a value which is a string
 library_type has a value which is a string
 condition has a value which is a string
@@ -857,8 +851,7 @@ ignore has a value which is a reference to a list where each element is a string
 =begin text
 
 a reference to a hash where the following keys are defined:
-ws_id_or_name has a value which is a string
-obj_id_or_name has a value which is a string
+destination_ref has a value which is a string
 file_path has a value which is a string
 library_type has a value which is a string
 condition has a value which is a string
@@ -929,11 +922,10 @@ obj_ref has a value which is a string
 
       Required input parameters for downloading a reads alignment
 
-      ws_id_or_name  -  Destination: A numeric value is interpreted as an id and
-                            an alpha-numeric value is interpreted as a name
-
-      obj_id_or_name -  Destination: A numeric value is interpreted as an id and
-                                an alpha-numeric value as a name and with '/' as obj ref
+      string source_ref -  object reference of alignment source. The
+                           object ref is 'ws_name_or_id/obj_name_or_id'
+                           where ws_name_or_id is the workspace name or id
+                           and obj_name_or_id is the object name or id
     *
 
 
@@ -943,8 +935,7 @@ obj_ref has a value which is a string
 
 <pre>
 a reference to a hash where the following keys are defined:
-ws_id_or_name has a value which is a string
-obj_id_or_name has a value which is a string
+source_ref has a value which is a string
 downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
@@ -958,8 +949,7 @@ ignore has a value which is a reference to a list where each element is a string
 =begin text
 
 a reference to a hash where the following keys are defined:
-ws_id_or_name has a value which is a string
-obj_id_or_name has a value which is a string
+source_ref has a value which is a string
 downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
@@ -1072,13 +1062,26 @@ stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 
 
 
+=item Description
+
+*
+
+      Required input parameters for exporting a reads alignment
+
+      string source_ref -  object reference of alignment source. The
+                           object ref is 'ws_name_or_id/obj_name_or_id'
+                           where ws_name_or_id is the workspace name or id
+                           and obj_name_or_id is the object name or id
+    *
+
+
 =item Definition
 
 =begin html
 
 <pre>
 a reference to a hash where the following keys are defined:
-input_ref has a value which is a string
+source_ref has a value which is a string
 
 </pre>
 
@@ -1087,7 +1090,7 @@ input_ref has a value which is a string
 =begin text
 
 a reference to a hash where the following keys are defined:
-input_ref has a value which is a string
+source_ref has a value which is a string
 
 
 =end text

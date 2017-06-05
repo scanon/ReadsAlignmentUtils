@@ -51,29 +51,28 @@ class ReadsAlignmentUtils(object):
         """
         Validates and uploads the reads alignment  *
         :param params: instance of type "UploadAlignmentParams" (* Required
-           input parameters for uploading a reads alignment ws_id_or_name  - 
-           Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value is interpreted as a name obj_id_or_name - 
-           Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value as a name and with '/' as obj ref file_path   
-           -  Source: file with the path of the sam or bam file to be
-           uploaded library_type   - ‘single_end’ or ‘paired_end’ condition  
-           - genome_id      -  workspace id of genome annotation that was
-           used to build the alignment read_sample_id -  workspace id of read
-           sample used to make the alignment file *) -> structure: parameter
-           "ws_id_or_name" of String, parameter "obj_id_or_name" of String,
-           parameter "file_path" of String, parameter "library_type" of
-           String, parameter "condition" of String, parameter "genome_id" of
-           String, parameter "read_sample_id" of String, parameter
-           "aligned_using" of String, parameter "aligner_version" of String,
-           parameter "aligner_opts" of mapping from String to String,
-           parameter "replicate_id" of String, parameter "platform" of
-           String, parameter "bowtie2_index" of type "ws_bowtieIndex_id",
-           parameter "sampleset_id" of type "ws_Sampleset_id", parameter
-           "mapped_sample_id" of mapping from String to mapping from String
-           to String, parameter "validate" of type "boolean" (A boolean - 0
-           for false, 1 for true. @range (0, 1)), parameter "ignore" of list
-           of String
+           input parameters for uploading a reads alignment string
+           destination_ref -  object reference of alignment destination. The
+           object ref is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id
+           is the workspace name or id and obj_name_or_id is the object name
+           or id file_path         -  Source: file with the path of the sam
+           or bam file to be uploaded library_type      - ???single_end??? or
+           ???paired_end??? condition         - genome_id         - 
+           workspace id of genome annotation that was used to build the
+           alignment read_sample_id    -  workspace id of read sample used to
+           make the alignment file *) -> structure: parameter
+           "destination_ref" of String, parameter "file_path" of String,
+           parameter "library_type" of String, parameter "condition" of
+           String, parameter "genome_id" of String, parameter
+           "read_sample_id" of String, parameter "aligned_using" of String,
+           parameter "aligner_version" of String, parameter "aligner_opts" of
+           mapping from String to String, parameter "replicate_id" of String,
+           parameter "platform" of String, parameter "bowtie2_index" of type
+           "ws_bowtieIndex_id", parameter "sampleset_id" of type
+           "ws_Sampleset_id", parameter "mapped_sample_id" of mapping from
+           String to mapping from String to String, parameter "validate" of
+           type "boolean" (A boolean - 0 for false, 1 for true. @range (0,
+           1)), parameter "ignore" of list of String
         :returns: instance of type "UploadAlignmentOutput" (*  Output from
            uploading a reads alignment  *) -> structure: parameter "obj_ref"
            of String
@@ -82,35 +81,22 @@ class ReadsAlignmentUtils(object):
             'ReadsAlignmentUtils.upload_alignment',
             [params], self._service_ver, context)
 
-    def export_alignment(self, params, context=None):
-        """
-        Wrapper function for use by in-narrative downloaders to download alignments from shock *
-        :param params: instance of type "ExportParams" -> structure:
-           parameter "input_ref" of String
-        :returns: instance of type "ExportOutput" -> structure: parameter
-           "shock_id" of String
-        """
-        return self._client.call_method(
-            'ReadsAlignmentUtils.export_alignment',
-            [params], self._service_ver, context)
-
     def download_alignment(self, params, context=None):
         """
         Downloads alignment files in .bam, .sam and .bai formats. Also downloads alignment stats *
         :param params: instance of type "DownloadAlignmentParams" (* Required
-           input parameters for downloading a reads alignment ws_id_or_name 
-           -  Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value is interpreted as a name obj_id_or_name - 
-           Destination: A numeric value is interpreted as an id and an
-           alpha-numeric value as a name and with '/' as obj ref *) ->
-           structure: parameter "ws_id_or_name" of String, parameter
-           "obj_id_or_name" of String, parameter "downloadBAM" of type
-           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
-           parameter "downloadSAM" of type "boolean" (A boolean - 0 for
-           false, 1 for true. @range (0, 1)), parameter "downloadBAI" of type
-           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
-           parameter "validate" of type "boolean" (A boolean - 0 for false, 1
-           for true. @range (0, 1)), parameter "ignore" of list of String
+           input parameters for downloading a reads alignment string
+           source_ref -  object reference of alignment source. The object ref
+           is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
+           workspace name or id and obj_name_or_id is the object name or id
+           *) -> structure: parameter "source_ref" of String, parameter
+           "downloadBAM" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "downloadSAM" of type "boolean" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "downloadBAI" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "validate" of type "boolean" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "ignore" of list of String
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "bam_file" of String, parameter "sam_file" of
@@ -125,6 +111,22 @@ class ReadsAlignmentUtils(object):
         """
         return self._client.call_method(
             'ReadsAlignmentUtils.download_alignment',
+            [params], self._service_ver, context)
+
+    def export_alignment(self, params, context=None):
+        """
+        Wrapper function for use by in-narrative downloaders to download alignments from shock *
+        :param params: instance of type "ExportParams" (* Required input
+           parameters for exporting a reads alignment string source_ref - 
+           object reference of alignment source. The object ref is
+           'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
+           workspace name or id and obj_name_or_id is the object name or id
+           *) -> structure: parameter "source_ref" of String
+        :returns: instance of type "ExportOutput" -> structure: parameter
+           "shock_id" of String
+        """
+        return self._client.call_method(
+            'ReadsAlignmentUtils.export_alignment',
             [params], self._service_ver, context)
 
     def status(self, context=None):
