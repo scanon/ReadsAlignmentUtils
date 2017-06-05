@@ -4,6 +4,8 @@ import os  # noqa: F401
 import time
 import shutil
 import hashlib
+import requests
+import inspect
 
 from os import environ
 try:
@@ -14,6 +16,11 @@ except:
 from pprint import pprint  # noqa: F401
 
 from biokbase.workspace.client import Workspace as workspaceService
+from Workspace.baseclient import ServerError as WorkspaceError
+from Workspace.WorkspaceClient import Workspace
+from DataFileUtil.baseclient import ServerError as DFUError
+from DataFileUtil.DataFileUtilClient import DataFileUtil
+from biokbase.AbstractHandle.Client import AbstractHandle as HandleService  # @UnresolvedImport
 from ReadsAlignmentUtils.ReadsAlignmentUtilsImpl import ReadsAlignmentUtils
 from ReadsAlignmentUtils.ReadsAlignmentUtilsServer import MethodContext
 from ReadsAlignmentUtils.authclient import KBaseAuth as _KBaseAuth
@@ -29,7 +36,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        token = environ.get('KB_AUTH_TOKEN', None)
+        cls.token = environ.get('KB_AUTH_TOKEN', None)
         config_file = environ.get('KB_DEPLOYMENT_CONFIG', None)
         cls.cfg = {}
         config = ConfigParser()
@@ -39,11 +46,11 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         # Getting username from Auth profile for token
         authServiceUrl = cls.cfg['auth-service-url']
         auth_client = _KBaseAuth(authServiceUrl)
-        user_id = auth_client.get_user(token)
+        user_id = auth_client.get_user(cls.token)
         # WARNING: don't call any logging methods on the context object,
         # it'll result in a NoneType error
         cls.ctx = MethodContext(None)
-        cls.ctx.update({'token': token,
+        cls.ctx.update({'token': cls.token,
                         'user_id': user_id,
                         'provenance': [
                             {'service': 'ReadsAlignmentUtils',
@@ -51,18 +58,26 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                              'method_params': []
                              }],
                         'authenticated': 1})
+        cls.shockURL = cls.cfg['shock-url']
         cls.wsURL = cls.cfg['workspace-url']
         cls.wsClient = workspaceService(cls.wsURL)
+        cls.ws = Workspace(cls.wsURL, token=cls.token)
+        cls.hs = HandleService(url=cls.cfg['handle-service-url'],
+                               token=cls.token)
         # create workspace
         wssuffix = int(time.time() * 1000)
-        wsName = "test_alignment_" + str(wssuffix)
-        cls.wsinfo = cls.wsClient.create_workspace({'workspace': wsName})
+        wsname = "test_alignment_" + str(wssuffix)
+        cls.wsinfo = cls.wsClient.create_workspace({'workspace': wsname})
         print('created workspace ' + cls.getWsName())
 
         cls.serviceImpl = ReadsAlignmentUtils(cls.cfg)
         cls.scratch = cls.cfg['scratch']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
+        cls.dfu = DataFileUtil(os.environ['SDK_CALLBACK_URL'], token=cls.token)
 
+        cls.staged = {}
+        cls.nodes_to_delete = []
+        cls.handles_to_delete = []
         cls.setupTestData()
 
 
@@ -73,38 +88,161 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             print('Test workspace was deleted')
 
 
-    @classmethod
-    def setupTestData(cls):
-
-        ### have a upload directory different from scratch
-
-        cls.upload_dir = os.path.join(cls.scratch, 'upload')
-        try:
-            os.stat(cls.upload_dir)
-        except:
-            os.mkdir(cls.upload_dir)
-
-        cls.upload_file = 'accepted_hits_sorted.bam'
-        cls.upload_file_path = os.path.join('/kb/module/test/data/samtools', cls.upload_file)
-        shutil.copy2(cls.upload_file_path, cls.upload_dir)
-        cls.file_to_upload = os.path.join(cls.upload_dir, cls.upload_file)
-
-
     def getWsClient(self):
-        return self.__class__.wsClient
+        return self.wsClient
 
     @classmethod
     def getWsName(cls):
         return cls.wsinfo[1]
 
     def getImpl(self):
-        return self.__class__.serviceImpl
+        return self.serviceImpl
 
     def getContext(self):
-        return self.__class__.ctx
+        return self.ctx
 
     @classmethod
-    def md5(self, filename):
+    def delete_shock_node(cls, node_id):
+        header = {'Authorization': 'Oauth {0}'.format(cls.token)}
+        requests.delete(cls.shockURL + '/node/' + node_id, headers=header,
+                        allow_redirects=True)
+        print('Deleted shock node ' + node_id)
+
+    @classmethod
+    def upload_file_to_shock(cls, file_path):
+        """
+        Use HTTP multi-part POST to save a file to a SHOCK instance.
+        """
+
+        header = dict()
+        header["Authorization"] = "Oauth {0}".format(cls.token)
+
+        if file_path is None:
+            raise Exception("No file given for upload to SHOCK!")
+
+        with open(os.path.abspath(file_path), 'rb') as dataFile:
+            files = {'upload': dataFile}
+            print('POSTing data')
+            response = requests.post(
+                cls.shockURL + '/node', headers=header, files=files,
+                stream=True, allow_redirects=True)
+            print('got response')
+
+        if not response.ok:
+            response.raise_for_status()
+
+        result = response.json()
+
+        if result['error']:
+            raise Exception(result['error'][0])
+        else:
+            return result["data"]
+
+
+    @classmethod
+    def upload_file_to_shock_and_get_handle(cls, test_file):
+        '''
+        Uploads the file in test_file to shock and returns the node and a
+        handle to the node.
+        '''
+        print('loading file to shock: ' + test_file)
+        node = cls.upload_file_to_shock(test_file)
+        pprint(node)
+        cls.nodes_to_delete.append(node['id'])
+
+        print('creating handle for shock id ' + node['id'])
+        handle_id = cls.hs.persist_handle({'id': node['id'],
+                                           'type': 'shock',
+                                           'url': cls.shockURL
+                                           })
+        cls.handles_to_delete.append(handle_id)
+
+        md5 = node['file']['checksum']['md5']
+        return node['id'], handle_id, md5, node['file']['size']
+
+
+    @classmethod
+    def save_ws_obj(cls, obj, objname, objtype):
+        tt = { 'type': objtype,
+               'data': obj,
+               'name': objname
+              }
+        return cls.ws.save_objects({
+            'workspace': cls.getWsName(),
+            'objects': [{'type': objtype,
+                         'data': obj,
+                         'name': objname
+                         }]
+        })[0]
+
+    more_upload_params = {'library_type': 'single_end',
+                          'read_sample_id': 'Ecoli_SE_8083_R1.fastq',
+                          'genome_id': 'Escherichia_coli_K12',
+                          'condition': 'test_condition'
+                          }
+
+    @classmethod
+    def uploadTestData(cls, wsobjname, object_body, alignment):
+
+        ob = dict(object_body)  # copy
+        ob['wsname'] = cls.getWsName()
+        #ob['name'] = wsobjname
+
+        print('\n===============staging data for object ' + wsobjname +
+              '================')
+        print('uploading alignment file ' + alignment['file'])
+        a_id, a_handle_id, a_md5, a_size = \
+            cls.upload_file_to_shock_and_get_handle(alignment['file'])
+
+        a_handle = {
+            'hid': a_handle_id,
+            'file_name': alignment['name'],
+            'id': a_id,
+            'url': cls.shockURL,
+            'type': 'shock',
+            'remote_md5': a_md5
+        }
+
+        ob['file'] = a_handle
+        ob['size'] = a_size
+
+        print('Saving object data')
+
+        objdata = cls.save_ws_obj(ob, wsobjname, 'KBaseRNASeq.RNASeqAlignment')
+        print('Saved object: ')
+        pprint(objdata)
+        pprint(ob)
+
+        cls.staged[wsobjname] = {'info': objdata,
+                                 'ref': cls.make_ref(objdata),
+                                 'node_id': a_id,
+                                 'handle': a_handle
+                                }
+
+    @classmethod
+    def setupTestData(cls):
+
+        ###  set up test data for download
+
+        test_file_bam = {'file': 'data/samtools/accepted_hits_sorted.bam',
+                         'name': 'accepted_hits_sorted.bam',
+                         'type': ''}
+
+        cls.uploadTestData('test_download_bam', cls.more_upload_params, test_file_bam)
+
+
+    @classmethod
+    def make_ref(cls, objinfo):
+        return str(objinfo[6]) + '/' + str(objinfo[0]) + '/' + str(objinfo[4])
+
+
+    @classmethod
+    def getSize(cls, filename):
+        return os.path.getsize(filename)
+
+
+    @classmethod
+    def md5(cls, filename):
         with open(filename, 'rb') as file_:
             hash_md5 = hashlib.md5()
             buf = file_.read(65536)
@@ -114,42 +252,103 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             return hash_md5.hexdigest()
 
 
-    more_upload_params = {'library_type': 'single_end',
-                          'read_sample_id': 'Ecoli_SE_8083_R1.fastq',
-                          'genome_id': 'Escherichia_coli_K12',
-                          'condition': 'test_condition'
-                         }
-
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
 
-    def test_alignment_upload_download(self):
 
-        ##  file uploaded from self.scratch/upload directory
-        ##  downloaded to self.scratch directory
+    def upload_alignment_success(self, params, expected):
 
-        expected_md5 = self.md5(self.upload_file_path)
+        tf = params.get('file_path')
+        target = os.path.join(self.scratch, tf)
+        shutil.copy('data/samtools/' + tf, target)
+        params['file_path'] = target
+
+        ref = self.getImpl().upload_alignment(self.ctx, params)[0]
+
+        obj = self.dfu.get_objects(
+            {'object_refs': [self.getWsName() + '/' + params.get('obj_id_or_name')]})['data'][0]
+
+        print("============ GET OBJECTS OUTPUT ==============")
+        pprint(obj)
+        print("==============================================")
+
+        self.assertEqual(ref['obj_ref'], self.make_ref(obj['info']))
+        self.assertEqual(obj['info'][2].startswith(
+            'KBaseRNASeq.RNASeqAlignment'), True)
+        d = obj['data']
+        self.assertEqual(d['genome_id'], params.get('genome_id'))
+        self.assertEqual(d['library_type'], params.get('library_type'))
+        self.assertEqual(d['condition'], params.get('condition'))
+        self.assertEqual(d['read_sample_id'], params.get('read_sample_id'))
+
+        self.assertEqual(d['size'], expected.get('size'))
+
+        f = d['file']
+        self.assertEqual(f['file_name'], expected.get('file_name'))
+        self.assertEqual(f['remote_md5'], expected.get('md5'))
+
+        node = f['id']
+        self.delete_shock_node(node)
+
+
+    def test_upload_success_bam(self):
 
         params = dictmerge({'ws_id_or_name': self.getWsName(),
-                            'obj_id_or_name': 'test_alignment',
-                            'file_path': self.file_to_upload,
+                            'obj_id_or_name': 'test_bam',
+                            'file_path': 'accepted_hits_sorted.bam',
+                            'validate': 'True'
                             }, self.more_upload_params)
+        expected = {'file_name': 'accepted_hits_sorted.bam',
+                    'size': 741290,
+                    'md5':'96c59589b0ed7338ff27de1881cf40b3' }
+        self.upload_alignment_success(params, expected)
 
-        ret = self.getImpl().upload_alignment(self.ctx, params)[0]
 
-        print(" ====== Returned value from upload ======= ")
-        pprint(ret)
+    def test_upload_success_sam(self):
+
+        params = dictmerge({'ws_id_or_name': self.getWsName(),
+                            'obj_id_or_name': 'test_upload_bam',
+                            'file_path': 'accepted_hits.sam',
+                            'validate': 'True'
+                            }, self.more_upload_params)
+        expected = {'file_name': 'accepted_hits_sorted.bam',
+                    'size': 741290,
+                    'md5': '96c59589b0ed7338ff27de1881cf40b3'}
+        self.upload_alignment_success(params, expected)
+
+
+    def download_alignment_success(self, obj_name, expected):
+        self.maxDiff = None
+        test_name = inspect.stack()[1][3]
+        print('\n**** starting expected downlaod success test: ' + test_name + ' ***\n')
 
         params = {'ws_id_or_name': self.getWsName(),
-                  'obj_id_or_name': 'test_alignment' }
+                  'obj_id_or_name': obj_name}
 
         ret = self.getImpl().download_alignment(self.ctx, params)[0]
-
-        print("====== Returned value from download ======= ")
+        print('\n== Output from download_alignment:')
         pprint(ret)
 
-        downloaded_file = ret['bam_file']
-        remote_md5 = self.md5(downloaded_file)
-        self.assertEqual(expected_md5, remote_md5)
+        bam_file_path = ret['bam_file']
+        out_dir, bam_file_name = os.path.split(bam_file_path)
+        self.assertEqual(bam_file_name, expected['bam_file'])
+        size = os.path.getsize(bam_file_path)
+        md5 = self.md5(bam_file_path)
+        self.assertEqual(size, expected['size'])
+        self.assertEqual(md5, expected['md5'])
+
+
+    def test_download_success(self):
+
+        self.download_alignment_success('test_download_bam',
+                                        {'bam_file': 'accepted_hits_sorted.bam',
+                                         'size': 741290,
+                                         'md5': '96c59589b0ed7338ff27de1881cf40b3'})
+
+
+    def test_success_export_alignment(self):
+
+        self.getImpl().export_alignment(self.ctx, {'input_ref': self.getWsName() + '/test_download_bam'})
+
 
 
     def fail_upload_alignment(self, params, error, exception=ValueError, do_startswith=False):
@@ -222,9 +421,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                          'file_path': 'bar'
                        }, self.more_upload_params),
             'No workspace with name 1s exists')
-
     '''
-
 
     def test_valid_validate_alignment(self):
         params = {'file_path':'data/samtools/accepted_hits.sam',

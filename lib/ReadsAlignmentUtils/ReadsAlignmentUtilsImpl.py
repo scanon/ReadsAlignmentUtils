@@ -4,7 +4,11 @@ import os
 import sys
 import re
 import time
+import shutil
 import logging
+import tempfile
+from datetime import datetime
+
 from pprint import pprint
 from pprint import pformat
 
@@ -12,6 +16,8 @@ from core import script_utils
 from DataFileUtil.DataFileUtilClient import DataFileUtil
 from DataFileUtil.baseclient import ServerError as DFUError
 from ReadsAlignmentUtils.core.sam_tools import SamTools
+from Workspace.WorkspaceClient import Workspace
+from Workspace.baseclient import ServerError as WorkspaceError
 
 #END_HEADER
 
@@ -37,8 +43,8 @@ the stored alignment.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = "git@github.com:arfathpasha/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "8ecbd3a2803b809b8b585a33d88099dc25df22fa"
+    GIT_URL = ""
+    GIT_COMMIT_HASH = "9e687b7a19f8a9ab734edab4a9282b44af0b68aa"
 
     #BEGIN_CLASS_HEADER
 
@@ -63,7 +69,7 @@ the stored alignment.
 
     def _get_file_path_info(self, file_path):
 
-        ### returns the dir name, file base name and extension
+        ### returns the dir name, file name, base name and extension
 
         dir, file_name = os.path.split(file_path)
         file_base, file_ext = os.path.splitext(file_name)
@@ -84,22 +90,19 @@ the stored alignment.
 
         ###  Checks the validity of workspace and object params and return them
 
+        ws_name_id = params.get(self.PARAM_IN_WS)
+
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
-        if isinstance(params[self.PARAM_IN_WS], int):
-            ws_name_id = params[self.PARAM_IN_WS]
-            # check if ws id is a valid one
-        else:
+        if not isinstance(ws_name_id, int):
+
             try:
-                ws_name_id = dfu.ws_name_to_id(params[self.PARAM_IN_WS])
+                ws_name_id = dfu.ws_name_to_id(ws_name_id)
             except DFUError as se:
                 prefix = se.message.split('.')[0]
                 raise ValueError(prefix)
 
         self.log('Obtained workspace name/id ' + str(ws_name_id))
-
-        # if already created
-        # presence of this object id or name in the workspace is checked later
 
         obj_name_id = params[self.PARAM_IN_OBJ]
 
@@ -129,12 +132,25 @@ the stored alignment.
         return ws_name_id, obj_name_id, file_path
 
 
+    def _get_ws_info(self, obj_ref):
+
+        # get WS metadata to get obj_name
+        ws = Workspace(self.ws_url)
+        try:
+            info = ws.get_object_info_new({'objects': [{'ref': obj_ref}]})[0]
+        except WorkspaceError as wse:
+            self.log('Logging workspace exception')
+            self.log(str(wse))
+            raise
+        return info
+
+
     def _proc_download_alignment_params(self, ctx, params):
 
         ###  Checks the presence and validity of download alignment params
 
         self._check_required_param(params, [self.PARAM_IN_WS,
-                                            self.PARAM_IN_OBJ])
+                                           self.PARAM_IN_OBJ])
 
         return self._proc_ws_obj_params(ctx, params)
 
@@ -145,11 +161,12 @@ the stored alignment.
 
         return self.samtools.get_stats(file)
 
+
     def _validate(self, params):
         samt = SamTools(self.config, self.__LOGGER)
         if 'ignore' in params:
             rval = samt.validate(ifile=params['file_path'], ipath=None,
-                             ignore=params['ignore'])
+                                 ignore=params['ignore'])
         else:
             rval = samt.validate(ifile=params['file_path'], ipath=None)
 
@@ -179,6 +196,7 @@ the stored alignment.
 
         self.scratch = config['scratch']
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        self.ws_url = config['workspace-url']
         self.samtools = SamTools(config)
         #END_CONSTRUCTOR
         pass
@@ -259,13 +277,10 @@ the stored alignment.
             if self._validate(params) == 1:
                 raise Exception('{0} failed validation'.format(file_path))
 
-        # more file type and error checking - TO DO
-
         bam_file = file_path
         if file_ext.lower() == '.sam':
-            # checks error from samtools - TO DO
             self.samtools.convert_sam_to_sorted_bam(file_name, dir)
-            bam_file = os.path.join(dir, file_base + '.bam')
+            bam_file = os.path.join(dir, file_base + '_sorted.bam')
 
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
@@ -278,21 +293,18 @@ the stored alignment.
 
         aligner_stats = self._get_aligner_stats(file_path)
 
-        #  TO_DO:  whether and how to push these into provenance
-
         aligner_data = {'file': file_handle,
                        'size': file_size,
-                       'aligned_using': params.get(self.PARAM_IN_ALIGNED_USING, 'None'),
-                       'aligner_version': params.get(self.PARAM_IN_ALIGNER_VER, 'None'),
+                       'aligned_using': params.get(self.PARAM_IN_ALIGNED_USING),
+                       'aligner_version': params.get(self.PARAM_IN_ALIGNER_VER),
                        'library_type': params.get(self.PARAM_IN_LIB_TYPE),
                        'condition': params.get(self.PARAM_IN_CONDITION),
                        'read_sample_id': params.get(self.PARAM_IN_SAMPLE_ID),
                        'genome_id': params.get(self.PARAM_IN_GENOME_ID),
                        'alignment_stats': aligner_stats
                       }
-        try:
 
-            res = dfu.save_objects(
+        res = dfu.save_objects(
                 {"id": ws_name_id,
                  "objects": [{
                      "type": "KBaseRNASeq.RNASeqAlignment",
@@ -300,15 +312,7 @@ the stored alignment.
                      "name": obj_name_id}
                  ]})[0]
 
-        except Exception, e:
-            self.log("Failed to save alignment to workspace")
-            raise Exception(e)
-
         self.log('save complete')
-
-        print("============== SAVE OBJECTS OUTPUT ===================")
-        pprint(res)
-        print("======================================================\n")
 
         returnVal = {'obj_ref': str(res[6]) + '/' + str(res[0]) + '/' + str(res[4])}
 
@@ -323,29 +327,6 @@ the stored alignment.
                              'returnVal is not type dict as required.')
         # return the results
         return [returnVal]
-
-    def export_alignment(self, ctx, params):
-        """
-        Wrapper function for use by in-narrative downloaders to download alignments from shock *
-        :param params: instance of type "ExportParams" -> structure:
-           parameter "input_ref" of String
-        :returns: instance of type "ExportOutput" -> structure: parameter
-           "shock_id" of String
-        """
-        # ctx is the context object
-        # return variables are: output
-        #BEGIN export_alignment
-
-        #  TO DO
-
-        #END export_alignment
-
-        # At some point might do deeper type checking...
-        if not isinstance(output, dict):
-            raise ValueError('Method export_alignment return value ' +
-                             'output is not type dict as required.')
-        # return the results
-        return [output]
 
     def download_alignment(self, ctx, params):
         """
@@ -385,10 +366,10 @@ the stored alignment.
 
         ws_name_id, obj_name_id = self._proc_download_alignment_params(ctx, params)
 
-        dfu = DataFileUtil(self.callback_url, token=ctx['token'])
-
         obj_ref = obj_name_id if '/' in obj_name_id else \
-                    (str(ws_name_id) + '/' + str(obj_name_id))
+            (str(ws_name_id) + '/' + str(obj_name_id))
+
+        dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
         try:
             alignment = dfu.get_objects({'object_refs': [obj_ref]})['data']
@@ -396,41 +377,58 @@ the stored alignment.
             self.log('Logging stacktrace from workspace exception:\n' + e.data)
             raise
 
-        print("=========== Alignment ===============")
-        pprint(alignment)
-        print("=====================================")
-
-        ## check error from shock_to_file: to do
-
-        output_dir = self.scratch
+        # set the output dir
+        timestamp = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds() * 1000)
+        output_dir = os.path.join(self.scratch, 'download_' + str(timestamp))
+        os.mkdir(output_dir)
 
         file_ret = dfu.shock_to_file({
                                     'shock_id': alignment[0]['data']['file']['id'],
                                     'file_path': output_dir
                                     })
 
-        ## make sure the output file is present: to do
-
         bam_file = alignment[0]['data']['file']['file_name']
+
+        # validate the downloaded bam file
+        if 'validate' in params and params['validate'] is True:
+            params['file_path'] = bam_file
+            if self._validate(params) == 1:
+                raise Exception('{0} failed validation'.format(bam_file))
 
         print(bam_file)
 
         dir, file_name, file_base, file_ext = self._get_file_path_info(bam_file)
 
-        ## check flags in input param to see which files need to be created - TO DO
+        returnVal = {'ws_id': ws_name_id}
 
-        ## check error from samtools - TO DO
-        # self.samtools.convert_bam_to_sam(bam_file, self.scratch)
-        sam_file = file_base + '.sam'
+        if (params.get('downloadBAM', True)):
+            bam_file_path = os.path.join(output_dir, bam_file)
+            if os.path.isfile(bam_file_path):
+                returnVal['bam_file'] = bam_file_path
+            else:
+                raise ValueError('Error downloading ' + bam_file)
 
-        # check error from samtools - TO DO
-        bai_file = file_base + '.bai'
-        self.samtools.create_bai_from_bam(bam_file, self.scratch)
+        if (params.get('downloadBAI', False)):
+            bai_file = file_base + '.bai'
+            bai_file_path = os.path.join(output_dir, bai_file)
+            self.samtools.create_bai_from_bam(bam_file, output_dir)
+            if os.path.isfile(bai_file_path):
+                returnVal['bai_file'] = bai_file_path
+            else:
+                raise ValueError('Error downloading ' + bai_file)
 
-        returnVal = {'ws_id': ws_name_id,
-                     'bam_file': os.path.join(output_dir, bam_file),
-                     'bai_file': os.path.join(output_dir, bai_file)
-                    }
+        if (params.get('downloadSAM', False)):
+            file_base = file_base.replace('_sorted', '')
+            sam_file = file_base + '.sam'
+            self.samtools.convert_bam_to_sam(bam_file, output_dir, sam_file)
+            sam_file_path = os.path.join(output_dir, sam_file)
+            if os.path.isfile(sam_file_path):
+                returnVal['sam_file'] = sam_file_path
+            else:
+                raise ValueError('Error downloading ' + sam_file)
+
+        if len(returnVal) == 1:
+            raise ValueError('No files were requested to be downloaded')
 
         #END download_alignment
 
@@ -440,6 +438,58 @@ the stored alignment.
                              'returnVal is not type dict as required.')
         # return the results
         return [returnVal]
+
+    def export_alignment(self, ctx, params):
+        """
+        Wrapper function for use by in-narrative downloaders to download alignments from shock *
+        :param params: instance of type "ExportParams" -> structure:
+           parameter "input_ref" of String
+        :returns: instance of type "ExportOutput" -> structure: parameter
+           "shock_id" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN export_alignment
+
+        inref = params.get('input_ref')
+        if not inref:
+            raise ValueError('No obj_ref specified')
+
+        info = self._get_ws_info(inref)
+
+        files = self.download_alignment(ctx, {self.PARAM_IN_WS: info[7],
+                                              self.PARAM_IN_OBJ: inref})[0]
+
+        # create the output directory and move the file there
+        tempdir = tempfile.mkdtemp(dir=self.scratch)
+        export_dir = os.path.join(tempdir, info[1])
+        os.makedirs(export_dir)
+
+        bamFile = files['bam_file']
+        shutil.move(bamFile, os.path.join(export_dir, os.path.basename(bamFile)))
+        samFile = files.get('sam_file')
+        if samFile:
+            shutil.move(samFile, os.path.join(export_dir, os.path.basename(samFile)))
+        baiFile = files.get('bai_file')
+        if baiFile:
+            shutil.move(baiFile, os.path.join(export_dir, os.path.basename(baiFile)))
+
+        # package and load to shock
+        dfu = DataFileUtil(self.callback_url)
+        ret = dfu.package_for_download({'file_path': export_dir,
+                                        'ws_refs': [inref]
+                                        })
+
+        output = {'shock_id': ret['shock_id']}
+
+        #END export_alignment
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method export_alignment return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
