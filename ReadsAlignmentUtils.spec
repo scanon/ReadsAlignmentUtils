@@ -50,11 +50,11 @@ module ReadsAlignmentUtils {
                                 where ws_name_or_id is the workspace name or id
                                 and obj_name_or_id is the object name or id
 
-	  file_path         -  Source: file with the path of the sam or bam file to be uploaded
+	  file_path      -  Source: file with the path of the sam or bam file to be uploaded
 
-	  library_type      - ‘single_end’ or ‘paired_end’
-	  condition         -
-	  genome_id         -  workspace id of genome annotation that was
+	  library_type   - ‘single_end’ or ‘paired_end’
+	  condition      - experimental condition (test, control etc.)
+	  genome_id      -  workspace id of genome annotation that was
                             used to build the alignment
       read_sample_id    -  workspace id of read sample used to make
                             the alignment file
@@ -75,7 +75,7 @@ module ReadsAlignmentUtils {
        string aligner_version;           /* Optional */
        mapping<string opt_name, string opt_value> aligner_opts;  /* Optional */
 
-       string replicate_id;              /* Optional */
+       string replicate_id;              /* Optional. Id of biological replicate for a given condition */
        string platform;                  /* Optional */
        ws_bowtieIndex_id bowtie2_index;  /* Optional */
 

@@ -45,8 +45,9 @@ install:
     - export PATH=$(pwd)/bin:$PATH
     - cd ../
     #IMPORTANT change clone to kbaseapps and finally to kbase after pull requests
-    - git clone git@github.com:arfathpasha/ReadsAlignmentUtils.git
+    - git clone https://github.com/arfathpasha/ReadsAlignmentUtils.git
     - cd ReadsAlignmentUtils
+    - git checkout travis
     # run the kb-sdk test command once to build test_local dir and populate the .ignore files
     - kb-sdk test -s || true
     # add test config
