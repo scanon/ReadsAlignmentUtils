@@ -23,7 +23,7 @@ env:
     # TEST_PASSWORD
     #- secure: "V8TuLmNg7n/fzdOkv3hcd/TFzexKRmrjBmFmlMqSXXbG3A1BlkIJOdhDLWjxKiWVGLOENXkiBd9CPOEKwZnJAfoOm3hdpZ3tTrsGqL/0DTCgwmP8Uj1RZ8zt5hYu4IfTnJHLJmNEzwfZ29eC1ONhsSXp9ATbG7lyI2BqFchwnOFGcg03CJ5fl+CJAucrJta/uHNaRXRpnf33DG3M105X/V7WdzNDIfQBCLgx+ZyuvQo0AxZpDy9+iRFqt0cNfhAsYKnsLFJ+VSv+4Fzj+a+uGnXLz/jLFJCSt3Z9CuOuuiepCjkFAgMuJ6W58C6M/0t8/ixPeeVKs7acIKnaTKJ7B8MPM/O1Y3GMdpS+elwLWV1Z9Ku3V3suSMcYv+PeErN78+vGVR/iH/zw8mue+1yxQvBPMjl/zVmgHgG3YOevHKu/RUNLLVMt+/jrHGe2+HqHIIdejO1dwOWDDfstsVRGbpFU8VXQplM7+3iSe6q7aY07ZsRgDzk2SHI2cCg0Th5lUp8ri2oeMaAuFJSD2nWpT0bvull1jNoYRK4/h/3Pam2Hw64CQr2wIMhLBAfeVcvhLaNaVi8wCWxTHyHJ0cDpTd307mqnsuU+HIfmVzatYpXM7RXJXvYcAxfmRnKh9xOsNRyetyFbfmuzLTEedMYMT5Q6J7v5DORDzpU5F8kklA0="
     # TEST_TOKEN
-    secure: "ihFDDlgYx5W8tvBSqw9v4cn9Ejw2VTSHH3Hu8C+mpufJwNavbKk8C5ttezzem/2ltQbgH79L+TNCh55GW2dURVCLvP68LkjTfOIfCToS8YBGJXdDBOhy4uWKSrKjwPpl48InN7H94thchl3vFjoX158yv+Vneh8/jMFjzbguhSncSMNIBAnEtYyIlJDGXRXyLgPP79iAuC7vnOwfJXnj7+TobNx7bSaGtYy3FlmP4DRDGSBWx5a0hgZUuZMifclcx2+2/pEGU+8xGsnjxGdkY7xnyTQrCc0ZxlLYCRpyupmPXls1tYBwtyDvd0wnjiNCWg2vPTiaRxOWB/jp4HOxF79OskYvWCNTEkj/jfrI8kl0mbkG9jFn8SjNnAlLbrApgHDdTpLtMfKjYpbVRpJAkUH+aL43EhR/BTTzd/P40tu/7qnnLAwLAoRgOUG0iaolvwN0LzOTbr+MyriV/elIi1bMh2NSs7Ts9Dt8o1WvCyga+6WRZUMOnICtxN6kAJkARdALNIsjHr559inNtuAVX7DmAN5eCMbmY4upVrJiWxzPasI+nXifl4MQmK2x7EIXfkadagtibMgq5hVy0xQuzzYRr9yQsejGml8MH2xt7e4r2iWjqBxMMw6GBLHGYMdHSaFcTsETua8cB/335rXtaFuwd9saw61rvdnlunh8nmg="
+    secure: "RQf2v8VWKNngMT9vF33qM0X1uNIqbuPNpOxcfzVn1/adPvT8ImQ5YoX5ays1SEbAU67I6zg37uO/BjFNoNm2xz+6uRW5GwFbxr0i1zGQuZl7fr5u/AYN8p2ectP+J6zRrTWQHkhOUow6ShU8OYw5e8rc9UWN4MnuVC9p9l60QmS4fcHv0aKpdnkYhQz+DuUhtSG8t1WI9ozzRpOouJIemxcoA1sbLkTvaNm9ma7f6sW26vS7kBpByn7vwj7oBaTB21c3asOWrTS9bMcixW19knvz5mOACJQyBllIs1aqTI08jGayb1VaiFCtToHq1H3HgQgoW/Fdn+fLEoTU+e0aAF/km52Ahwaav+TdxOgnwqtdbuPFeCF06Q8Ooo3PsdK5tHAaW1ppkkkM/Y7oSNLxiBa6E5+D7/ovA4x5hKTjzoYx+zJZ77OIf0fmb8SXw/ldzWgOhMCqwE7LT1abXCKNzBVTx6kOJdJUplg/B24I1ylgAtbKnJ4NB7Hvlg0q698qFGURMzpkttoqY24MhCROcE2DbMA+hOoEHzYndW3vTB2zGJ0e2gpdzGjG9Pk6bSAN56D5a5wobnvMFhw7M+nYbctyr243BvXLVXiZ9MyG7CeLvI9rVuoMLYCJEaWvB/Z4jnSJPxG3i1uhEehahaV9G9NNQAs/6LKbrWjdRdXGg0k="
 
 branches:
   only:
@@ -44,7 +44,7 @@ install:
     - docker images
     - export PATH=$(pwd)/bin:$PATH
     - cd ../
-    #IMPORTANT change clone to kbaseapps and finally to kbase after pull requests
+    #IMPORTANT change clone to kbaseapps and finally to kbase after pull requeststravis
     - git clone https://github.com/arfathpasha/ReadsAlignmentUtils.git
     - cd ReadsAlignmentUtils
     - git checkout travis
