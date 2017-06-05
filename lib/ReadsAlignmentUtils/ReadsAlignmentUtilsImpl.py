@@ -48,8 +48,6 @@ the stored alignment.
 
     #BEGIN_CLASS_HEADER
 
-    #PARAM_IN_WS = 'ws_id_or_name'
-    #PARAM_IN_OBJ = 'obj_id_or_name'
     PARAM_IN_FILE = 'file_path'
     PARAM_IN_SRC_REF = 'source_ref'
     PARAM_IN_DST_REF = 'destination_ref'
@@ -90,11 +88,17 @@ the stored alignment.
 
     def _proc_ws_obj_params(self, ctx, params):
 
-        ###  Checks the validity of workspace and object params and return them
+        ###  Checks the validity of workspace and object params and returns them
 
         dst_ref = params.get(self.PARAM_IN_DST_REF)
 
         ws_name_id, obj_name_id = os.path.split(dst_ref)
+
+        if not bool(ws_name_id.strip()) or ws_name_id == '/':
+            raise ValueError("Workspace name or id is required in " + self.PARAM_IN_DST_REF)
+
+        if not bool(obj_name_id.strip()):
+            raise ValueError("Object name or id is required in " + self.PARAM_IN_DST_REF)
 
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
@@ -355,7 +359,7 @@ the stored alignment.
 
         inref = params.get(self.PARAM_IN_SRC_REF)
         if not inref:
-            raise ValueError('No source_ref specified')
+            raise ValueError(self.PARAM_IN_SRC_REF + ' parameter is required')
 
         info = self._get_ws_info(inref)
 
@@ -449,11 +453,11 @@ the stored alignment.
 
         inref = params.get(self.PARAM_IN_SRC_REF)
         if not inref:
-            raise ValueError('No source_ref specified')
+            raise ValueError(self.PARAM_IN_SRC_REF + ' parameter is required')
 
         info = self._get_ws_info(inref)
 
-        files = self.download_alignment(ctx, {self.PARAM_IN_SRC_REF: inref})[0]
+        files = self.download_alignment(ctx, params)[0]
 
         # create the output directory and move the file there
         tempdir = tempfile.mkdtemp(dir=self.scratch)
