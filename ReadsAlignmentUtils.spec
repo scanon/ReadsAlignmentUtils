@@ -45,48 +45,47 @@ module ReadsAlignmentUtils {
 
       Required input parameters for uploading a reads alignment
 
-      string destination_ref -  object reference of alignment destination. The
-                                object ref is 'ws_name_or_id/obj_name_or_id'
-                                where ws_name_or_id is the workspace name or id
-                                and obj_name_or_id is the object name or id
+        string destination_ref -  object reference of alignment destination. The
+                                 object ref is 'ws_name_or_id/obj_name_or_id'
+                                 where ws_name_or_id is the workspace name or id
+                                 and obj_name_or_id is the object name or id
 
-	  file_path         -  Source: file with the path of the sam or bam file to be uploaded
+        file_path         -  Source: file with the path of the sam or bam file to be uploaded
 
-	  library_type      - ‘single_end’ or ‘paired_end’
-	  condition         -
-	  genome_id         -  workspace id of genome annotation that was
-                            used to build the alignment
-      read_sample_id    -  workspace id of read sample used to make
-                            the alignment file
+        library_type      - ‘single_end’ or ‘paired_end’
+        condition         -
+        genome_id         -  workspace id of genome annotation that was
+                             used to build the alignment
+        read_sample_id    -  workspace id of read sample used to make
+                             the alignment file
 
     **/
 
    typedef structure {
 
-       string destination_ref;
-       string file_path;
+        string destination_ref;
+        string file_path;
 
-	   string library_type;
-	   string condition;
-       string genome_id;
-	   string read_sample_id;
+        string library_type;
+        string condition;
+        string genome_id;
+        string read_sample_id;
 
-       string aligned_using;             /* Optional ‘hisat2’, ‘tophat2’, ‘bowtie2’ or some other aligner name */
-       string aligner_version;           /* Optional */
-       mapping<string opt_name, string opt_value> aligner_opts;  /* Optional */
+        string aligned_using;             /* Optional ‘hisat2’, ‘tophat2’, ‘bowtie2’ or some other aligner name */
+        string aligner_version;           /* Optional */
+        mapping<string opt_name, string opt_value> aligner_opts;  /* Optional */
 
-       string replicate_id;              /* Optional */
-       string platform;                  /* Optional */
-       ws_bowtieIndex_id bowtie2_index;  /* Optional */
-
-       ws_Sampleset_id sampleset_id;     /* Optional. workspace id of sample_set to which
+        string replicate_id;              /* Optional */
+        string platform;                  /* Optional */
+        ws_bowtieIndex_id bowtie2_index;  /* Optional */
+        ws_Sampleset_id sampleset_id;     /* Optional. workspace id of sample_set to which
                                             the read_sample_id may belong  **/
 
-       mapping<string condition,mapping<string sample_id , string replicate_id>> mapped_sample_id; /* Optional */
+        mapping<string condition,mapping<string sample_id , string replicate_id>> mapped_sample_id; /* Optional */
 
-       boolean validate;    /* Optional. Set to true if input needs to be validated. Default: False */
-       list<string> ignore; /* Optional. List of validation errors to ignore.
-                               Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
+        boolean validate;    /* Optional. Set to true if input needs to be validated. Default: False */
+        list<string> ignore; /* Optional. List of validation errors to ignore.
+                                Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
                                         'INVALID_MAPPING_QUALITY']
                                See http://broadinstitute.github.io/picard/command-line-overview.html#ValidateSamFile */
 
