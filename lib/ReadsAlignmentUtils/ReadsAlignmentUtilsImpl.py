@@ -48,15 +48,24 @@ the stored alignment.
 
     #BEGIN_CLASS_HEADER
 
+    ### required params
     PARAM_IN_FILE = 'file_path'
     PARAM_IN_SRC_REF = 'source_ref'
     PARAM_IN_DST_REF = 'destination_ref'
     PARAM_IN_LIB_TYPE = 'library_type'
     PARAM_IN_CONDITION = 'condition'
-    PARAM_IN_SAMPLE_ID = 'read_library_ref'
-    PARAM_IN_GENOME_ID = 'assembly_or_genome_ref'
+    PARAM_IN_READ_LIB_REF = 'read_library_ref'
+    PARAM_IN_ASM_GEN_REF = 'assembly_or_genome_ref'
+
+    ### optional params
     PARAM_IN_ALIGNED_USING = 'aligned_using'
     PARAM_IN_ALIGNER_VER = 'aligner_version'
+    PARAM_IN_ALIGNER_OPTS = 'aligner_opts'
+    PARAM_IN_REPLICATE_ID = 'replicate_id'
+    PARAM_IN_PLATFORM = 'platform'
+    PARAM_IN_BOWTIE2_INDEX = 'bowtie2_index'
+    PARAM_IN_SAMPLESET_REF = 'sampleset_ref'
+    PARAM_IN_MAPPED_SAMPLE_ID = 'mapped_sample_id'
 
     INVALID_WS_OBJ_NAME_RE = re.compile('[^\\w\\|._-]')
     INVALID_WS_NAME_RE = re.compile('[^\\w:._-]')
@@ -123,8 +132,8 @@ the stored alignment.
                                             self.PARAM_IN_FILE,
                                             self.PARAM_IN_LIB_TYPE,
                                             self.PARAM_IN_CONDITION,
-                                            self.PARAM_IN_SAMPLE_ID,
-                                            self.PARAM_IN_GENOME_ID
+                                            self.PARAM_IN_READ_LIB_REF,
+                                            self.PARAM_IN_ASM_GEN_REF
                                             ])
 
         ws_name_id, obj_name_id = self._proc_ws_obj_params(ctx, params)
@@ -262,7 +271,9 @@ the stored alignment.
         # return variables are: returnVal
         #BEGIN upload_alignment
 
-        self.log('Starting upload Reads Alignment, parsing parameters')
+        self.log('Starting upload Reads Alignment, parsing parameters ')
+        pprint(params)
+
         ws_name_id, obj_name_id, file_path = self._proc_upload_alignment_params(ctx, params)
 
         dir, file_name, file_base, file_ext = self._get_file_path_info(file_path)
@@ -274,8 +285,8 @@ the stored alignment.
 
         bam_file = file_path
         if file_ext.lower() == '.sam':
-            self.samtools.convert_sam_to_sorted_bam(file_name, dir)
             bam_file = os.path.join(dir, file_base + '_sorted.bam')
+            self.samtools.convert_sam_to_sorted_bam(file_name, dir, bam_file)
 
         dfu = DataFileUtil(self.callback_url, token=ctx['token'])
 
@@ -286,18 +297,34 @@ the stored alignment.
         file_handle = uploaded_file['handle']
         file_size = uploaded_file['size']
 
+        ###  gets the required parameters for workspace object
+
         aligner_stats = self._get_aligner_stats(file_path)
 
-        aligner_data = {'file': file_handle,
-                       'size': file_size,
-                       'aligned_using': params.get(self.PARAM_IN_ALIGNED_USING),
-                       'aligner_version': params.get(self.PARAM_IN_ALIGNER_VER),
-                       'library_type': params.get(self.PARAM_IN_LIB_TYPE),
-                       'condition': params.get(self.PARAM_IN_CONDITION),
-                       'read_sample_id': params.get(self.PARAM_IN_SAMPLE_ID),
-                       'genome_id': params.get(self.PARAM_IN_GENOME_ID),
-                       'alignment_stats': aligner_stats
-                      }
+        aligner_data = {
+                         'file': file_handle,
+                         'size': file_size,
+                         'condition': params.get(self.PARAM_IN_CONDITION),
+                         'read_sample_id': params.get(self.PARAM_IN_READ_LIB_REF),
+                         'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF)
+                        }
+
+        aligner_data['library_type'] = params.get(self.PARAM_IN_LIB_TYPE)
+        #aligner_data['library_type'] = self.get_library_type(params.get(self.PARAM_IN_LIB_TYPE))
+
+        optional_params = [ self.PARAM_IN_ALIGNED_USING,
+                            self.PARAM_IN_ALIGNER_VER,
+                            self.PARAM_IN_ALIGNER_OPTS,
+                            self.PARAM_IN_REPLICATE_ID,
+                            self.PARAM_IN_PLATFORM,
+                            self.PARAM_IN_BOWTIE2_INDEX,
+                            self.PARAM_IN_SAMPLESET_REF,
+                            self.PARAM_IN_MAPPED_SAMPLE_ID ]
+
+        for opt_param in optional_params:
+            if opt_param in params and params[opt_param] is not None:
+                aligner_data[opt_param] = params[opt_param]
+
 
         res = dfu.save_objects(
                 {"id": ws_name_id,
