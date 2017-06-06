@@ -178,13 +178,13 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         })[0]
 
     more_upload_params = {'library_type': 'single_end',
-                          'read_sample_id': 'Ecoli_SE_8083_R1.fastq',
-                          'genome_id': 'Escherichia_coli_K12',
+                          'read_library_ref': 'Ecoli_SE_8083_R1.fastq',
+                          'assembly_or_genome_ref': 'Escherichia_coli_K12',
                           'condition': 'test_condition'
                           }
 
     @classmethod
-    def uploadTestData(cls, wsobjname, object_body, alignment):
+    def uploadTestData(cls, wsobjname, object_body, test_file):
 
         ob = dict(object_body)  # copy
         ob['wsname'] = cls.getWsName()
@@ -192,13 +192,13 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         print('\n===============staging data for object ' + wsobjname +
               '================')
-        print('uploading alignment file ' + alignment.get('name'))
+        print('uploading alignment file ' + test_file.get('name'))
         a_id, a_handle_id, a_md5, a_size = \
-            cls.upload_file_to_shock_and_get_handle(alignment.get('data_file'))
+            cls.upload_file_to_shock_and_get_handle(test_file.get('data_file'))
 
         a_handle = {
             'hid': a_handle_id,
-            'file_name': alignment['name'],
+            'file_name': test_file.get('name'),
             'id': a_id,
             'url': cls.shockURL,
             'type': 'shock',
@@ -207,6 +207,10 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         ob['file'] = a_handle
         ob['size'] = a_size
+        ob['library_type'] = cls.more_upload_params.get('library_type')
+        ob['condition'] = cls.more_upload_params.get('condition')
+        ob['read_sample_id'] = cls.more_upload_params.get('read_library_ref')
+        ob['genome_id'] = cls.more_upload_params.get('assembly_or_genome_ref')
 
         print('Saving object data')
 
@@ -293,10 +297,10 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         self.assertEqual(obj['info'][2].startswith(
             'KBaseRNASeq.RNASeqAlignment'), True)
         d = obj['data']
-        self.assertEqual(d['genome_id'], params.get('genome_id'))
+        self.assertEqual(d['genome_id'], params.get('assembly_or_genome_ref'))
         self.assertEqual(d['library_type'], params.get('library_type'))
         self.assertEqual(d['condition'], params.get('condition'))
-        self.assertEqual(d['read_sample_id'], params.get('read_sample_id'))
+        self.assertEqual(d['read_sample_id'], params.get('read_library_ref'))
 
         self.assertEqual(d['size'], expected.get('size'))
 
@@ -513,4 +517,5 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
 
     # TO DO:  add more tests
+
 

@@ -16,7 +16,7 @@ module ReadsAlignmentUtils {
    */
    typedef int boolean;
    typedef string ws_bowtieIndex_id;
-   typedef string ws_Sampleset_id;
+   typedef string ws_Sampleset_ref;
 
    /** Input parameters for validating a reads alignment **/
 
@@ -46,18 +46,18 @@ module ReadsAlignmentUtils {
       Required input parameters for uploading a reads alignment
 
         string destination_ref -  object reference of alignment destination. The
-                                 object ref is 'ws_name_or_id/obj_name_or_id'
-                                 where ws_name_or_id is the workspace name or id
-                                 and obj_name_or_id is the object name or id
+                                  object ref is 'ws_name_or_id/obj_name_or_id'
+                                  where ws_name_or_id is the workspace name or id
+                                  and obj_name_or_id is the object name or id
 
-        file_path         -  Source: file with the path of the sam or bam file to be uploaded
+        file_path              -  Source: file with the path of the sam or bam file to be uploaded
 
-        library_type      - ‘single_end’ or ‘paired_end’
-        condition         -
-        genome_id         -  workspace id of genome annotation that was
-                             used to build the alignment
-        read_sample_id    -  workspace id of read sample used to make
-                             the alignment file
+        library_type           - ‘single_end’ or ‘paired_end’
+        condition              -
+        assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
+                                  used to build the alignment
+        read_library_ref       -  workspace object ref of the read sample used to make
+                                  the alignment file
 
     **/
 
@@ -68,8 +68,8 @@ module ReadsAlignmentUtils {
 
         string library_type;
         string condition;
-        string genome_id;
-        string read_sample_id;
+        string assembly_or_genome_ref;
+        string read_library_ref;
 
         string aligned_using;             /* Optional ‘hisat2’, ‘tophat2’, ‘bowtie2’ or some other aligner name */
         string aligner_version;           /* Optional */
@@ -78,8 +78,8 @@ module ReadsAlignmentUtils {
         string replicate_id;              /* Optional */
         string platform;                  /* Optional */
         ws_bowtieIndex_id bowtie2_index;  /* Optional */
-        ws_Sampleset_id sampleset_id;     /* Optional. workspace id of sample_set to which
-                                            the read_sample_id may belong  **/
+        ws_Sampleset_ref sampleset_ref;   /* Optional. workspace object ref of sample_set to which
+                                            the read_library_ref may belong  **/
 
         mapping<string condition,mapping<string sample_id , string replicate_id>> mapped_sample_id; /* Optional */
 

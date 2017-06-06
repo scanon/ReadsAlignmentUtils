@@ -43,8 +43,8 @@ the stored alignment.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = "https://github.com/ugswork/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "040cd56fec5935792454b1b6416aebae7c02697b"
+    GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
+    GIT_COMMIT_HASH = "f1b79aaba206890c9a937e10e4c1a83e5b6a8b47"
 
     #BEGIN_CLASS_HEADER
 
@@ -53,8 +53,8 @@ the stored alignment.
     PARAM_IN_DST_REF = 'destination_ref'
     PARAM_IN_LIB_TYPE = 'library_type'
     PARAM_IN_CONDITION = 'condition'
-    PARAM_IN_SAMPLE_ID = 'read_sample_id'
-    PARAM_IN_GENOME_ID = 'genome_id'
+    PARAM_IN_SAMPLE_ID = 'read_library_ref'
+    PARAM_IN_GENOME_ID = 'assembly_or_genome_ref'
     PARAM_IN_ALIGNED_USING = 'aligned_using'
     PARAM_IN_ALIGNER_VER = 'aligner_version'
 
@@ -235,21 +235,22 @@ the stored alignment.
            destination_ref -  object reference of alignment destination. The
            object ref is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id
            is the workspace name or id and obj_name_or_id is the object name
-           or id file_path         -  Source: file with the path of the sam
-           or bam file to be uploaded library_type      - ???single_end??? or
-           ???paired_end??? condition         - genome_id         - 
-           workspace id of genome annotation that was used to build the
-           alignment read_sample_id    -  workspace id of read sample used to
-           make the alignment file *) -> structure: parameter
+           or id file_path              -  Source: file with the path of the
+           sam or bam file to be uploaded library_type           -
+           ???single_end??? or ???paired_end??? condition              -
+           assembly_or_genome_ref -  workspace object ref of assembly or
+           genome annotation that was used to build the alignment
+           read_library_ref       -  workspace object ref of the read sample
+           used to make the alignment file *) -> structure: parameter
            "destination_ref" of String, parameter "file_path" of String,
            parameter "library_type" of String, parameter "condition" of
-           String, parameter "genome_id" of String, parameter
-           "read_sample_id" of String, parameter "aligned_using" of String,
+           String, parameter "assembly_or_genome_ref" of String, parameter
+           "read_library_ref" of String, parameter "aligned_using" of String,
            parameter "aligner_version" of String, parameter "aligner_opts" of
            mapping from String to String, parameter "replicate_id" of String,
            parameter "platform" of String, parameter "bowtie2_index" of type
-           "ws_bowtieIndex_id", parameter "sampleset_id" of type
-           "ws_Sampleset_id", parameter "mapped_sample_id" of mapping from
+           "ws_bowtieIndex_id", parameter "sampleset_ref" of type
+           "ws_Sampleset_ref", parameter "mapped_sample_id" of mapping from
            String to mapping from String to String, parameter "validate" of
            type "boolean" (A boolean - 0 for false, 1 for true. @range (0,
            1)), parameter "ignore" of list of String

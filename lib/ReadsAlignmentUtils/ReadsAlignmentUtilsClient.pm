@@ -225,20 +225,20 @@ UploadAlignmentParams is a reference to a hash where the following keys are defi
 	file_path has a value which is a string
 	library_type has a value which is a string
 	condition has a value which is a string
-	genome_id has a value which is a string
-	read_sample_id has a value which is a string
+	assembly_or_genome_ref has a value which is a string
+	read_library_ref has a value which is a string
 	aligned_using has a value which is a string
 	aligner_version has a value which is a string
 	aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
 	replicate_id has a value which is a string
 	platform has a value which is a string
 	bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
-	sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
+	sampleset_ref has a value which is a ReadsAlignmentUtils.ws_Sampleset_ref
 	mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
 	validate has a value which is a ReadsAlignmentUtils.boolean
 	ignore has a value which is a reference to a list where each element is a string
 ws_bowtieIndex_id is a string
-ws_Sampleset_id is a string
+ws_Sampleset_ref is a string
 boolean is an int
 UploadAlignmentOutput is a reference to a hash where the following keys are defined:
 	obj_ref has a value which is a string
@@ -256,20 +256,20 @@ UploadAlignmentParams is a reference to a hash where the following keys are defi
 	file_path has a value which is a string
 	library_type has a value which is a string
 	condition has a value which is a string
-	genome_id has a value which is a string
-	read_sample_id has a value which is a string
+	assembly_or_genome_ref has a value which is a string
+	read_library_ref has a value which is a string
 	aligned_using has a value which is a string
 	aligner_version has a value which is a string
 	aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
 	replicate_id has a value which is a string
 	platform has a value which is a string
 	bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
-	sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
+	sampleset_ref has a value which is a ReadsAlignmentUtils.ws_Sampleset_ref
 	mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
 	validate has a value which is a ReadsAlignmentUtils.boolean
 	ignore has a value which is a reference to a list where each element is a string
 ws_bowtieIndex_id is a string
-ws_Sampleset_id is a string
+ws_Sampleset_ref is a string
 boolean is an int
 UploadAlignmentOutput is a reference to a hash where the following keys are defined:
 	obj_ref has a value which is a string
@@ -694,7 +694,7 @@ a string
 
 
 
-=head2 ws_Sampleset_id
+=head2 ws_Sampleset_ref
 
 =over 4
 
@@ -804,19 +804,19 @@ validated has a value which is a ReadsAlignmentUtils.boolean
 
       Required input parameters for uploading a reads alignment
 
-      string destination_ref -  object reference of alignment destination. The
-                                object ref is 'ws_name_or_id/obj_name_or_id'
-                                where ws_name_or_id is the workspace name or id
-                                and obj_name_or_id is the object name or id
+        string destination_ref -  object reference of alignment destination. The
+                                  object ref is 'ws_name_or_id/obj_name_or_id'
+                                  where ws_name_or_id is the workspace name or id
+                                  and obj_name_or_id is the object name or id
 
-          file_path         -  Source: file with the path of the sam or bam file to be uploaded
+        file_path              -  Source: file with the path of the sam or bam file to be uploaded
 
-          library_type      - ???single_end??? or ???paired_end???
-          condition         -
-          genome_id         -  workspace id of genome annotation that was
-                            used to build the alignment
-      read_sample_id    -  workspace id of read sample used to make
-                            the alignment file
+        library_type           - ???single_end??? or ???paired_end???
+        condition              -
+        assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
+                                  used to build the alignment
+        read_library_ref       -  workspace object ref of the read sample used to make
+                                  the alignment file
 
     *
 
@@ -831,15 +831,15 @@ destination_ref has a value which is a string
 file_path has a value which is a string
 library_type has a value which is a string
 condition has a value which is a string
-genome_id has a value which is a string
-read_sample_id has a value which is a string
+assembly_or_genome_ref has a value which is a string
+read_library_ref has a value which is a string
 aligned_using has a value which is a string
 aligner_version has a value which is a string
 aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
 replicate_id has a value which is a string
 platform has a value which is a string
 bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
-sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
+sampleset_ref has a value which is a ReadsAlignmentUtils.ws_Sampleset_ref
 mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
 validate has a value which is a ReadsAlignmentUtils.boolean
 ignore has a value which is a reference to a list where each element is a string
@@ -855,15 +855,15 @@ destination_ref has a value which is a string
 file_path has a value which is a string
 library_type has a value which is a string
 condition has a value which is a string
-genome_id has a value which is a string
-read_sample_id has a value which is a string
+assembly_or_genome_ref has a value which is a string
+read_library_ref has a value which is a string
 aligned_using has a value which is a string
 aligner_version has a value which is a string
 aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
 replicate_id has a value which is a string
 platform has a value which is a string
 bowtie2_index has a value which is a ReadsAlignmentUtils.ws_bowtieIndex_id
-sampleset_id has a value which is a ReadsAlignmentUtils.ws_Sampleset_id
+sampleset_ref has a value which is a ReadsAlignmentUtils.ws_Sampleset_ref
 mapped_sample_id has a value which is a reference to a hash where the key is a string and the value is a reference to a hash where the key is a string and the value is a string
 validate has a value which is a ReadsAlignmentUtils.boolean
 ignore has a value which is a reference to a list where each element is a string
