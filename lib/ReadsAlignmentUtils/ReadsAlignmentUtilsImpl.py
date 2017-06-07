@@ -46,7 +46,7 @@ the stored alignment.
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "21bbe7e413e138da012ed4d79d4520a628d6476b"
+    GIT_COMMIT_HASH = "4eff9c09cd33f22100efc38cc25cfd112eadd07f"
 
     #BEGIN_CLASS_HEADER
 
@@ -500,7 +500,14 @@ the stored alignment.
            object reference of alignment source. The object ref is
            'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
            workspace name or id and obj_name_or_id is the object name or id
-           *) -> structure: parameter "source_ref" of String
+           *) -> structure: parameter "source_ref" of String, parameter
+           "exportBAM" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "exportSAM" of type "boolean" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "exportBAI" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "validate" of type "boolean" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "ignore" of list of String
         :returns: instance of type "ExportOutput" -> structure: parameter
            "shock_id" of String
         """
@@ -514,15 +521,20 @@ the stored alignment.
 
         info = self._get_ws_info(inref)
 
-        files = self.download_alignment(ctx, params)[0]
+        download_params = {}
+        for key, val in params.iteritems():
+            download_params[key.replace('export', 'download')] = val
+
+        files = self.download_alignment(ctx, download_params)[0]
 
         # create the output directory and move the file there
         tempdir = tempfile.mkdtemp(dir=self.scratch)
         export_dir = os.path.join(tempdir, info[1])
         os.makedirs(export_dir)
 
-        bamFile = files['bam_file']
-        shutil.move(bamFile, os.path.join(export_dir, os.path.basename(bamFile)))
+        bamFile = files.get('bam_file')
+        if bamFile:
+            shutil.move(bamFile, os.path.join(export_dir, os.path.basename(bamFile)))
         samFile = files.get('sam_file')
         if samFile:
             shutil.move(samFile, os.path.join(export_dir, os.path.basename(samFile)))

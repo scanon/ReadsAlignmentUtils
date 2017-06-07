@@ -472,6 +472,12 @@ $params is a ReadsAlignmentUtils.ExportParams
 $output is a ReadsAlignmentUtils.ExportOutput
 ExportParams is a reference to a hash where the following keys are defined:
 	source_ref has a value which is a string
+	exportBAM has a value which is a ReadsAlignmentUtils.boolean
+	exportSAM has a value which is a ReadsAlignmentUtils.boolean
+	exportBAI has a value which is a ReadsAlignmentUtils.boolean
+	validate has a value which is a ReadsAlignmentUtils.boolean
+	ignore has a value which is a reference to a list where each element is a string
+boolean is an int
 ExportOutput is a reference to a hash where the following keys are defined:
 	shock_id has a value which is a string
 
@@ -485,6 +491,12 @@ $params is a ReadsAlignmentUtils.ExportParams
 $output is a ReadsAlignmentUtils.ExportOutput
 ExportParams is a reference to a hash where the following keys are defined:
 	source_ref has a value which is a string
+	exportBAM has a value which is a ReadsAlignmentUtils.boolean
+	exportSAM has a value which is a ReadsAlignmentUtils.boolean
+	exportBAI has a value which is a ReadsAlignmentUtils.boolean
+	validate has a value which is a ReadsAlignmentUtils.boolean
+	ignore has a value which is a reference to a list where each element is a string
+boolean is an int
 ExportOutput is a reference to a hash where the following keys are defined:
 	shock_id has a value which is a string
 
@@ -1078,6 +1090,11 @@ stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 <pre>
 a reference to a hash where the following keys are defined:
 source_ref has a value which is a string
+exportBAM has a value which is a ReadsAlignmentUtils.boolean
+exportSAM has a value which is a ReadsAlignmentUtils.boolean
+exportBAI has a value which is a ReadsAlignmentUtils.boolean
+validate has a value which is a ReadsAlignmentUtils.boolean
+ignore has a value which is a reference to a list where each element is a string
 
 </pre>
 
@@ -1087,6 +1104,11 @@ source_ref has a value which is a string
 
 a reference to a hash where the following keys are defined:
 source_ref has a value which is a string
+exportBAM has a value which is a ReadsAlignmentUtils.boolean
+exportSAM has a value which is a ReadsAlignmentUtils.boolean
+exportBAI has a value which is a ReadsAlignmentUtils.boolean
+validate has a value which is a ReadsAlignmentUtils.boolean
+ignore has a value which is a reference to a list where each element is a string
 
 
 =end text

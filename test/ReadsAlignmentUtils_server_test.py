@@ -7,6 +7,8 @@ import hashlib
 import requests
 import inspect
 import tempfile
+from datetime import datetime
+
 from zipfile import ZipFile
 
 from os import environ
@@ -247,7 +249,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         ob = dict(object_body)  # copy
         ob['wsname'] = cls.getWsName()
-        #ob['name'] = wsobjname
 
         print('\n===============staging data for object ' + wsobjname +
               '================')
@@ -289,12 +290,9 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         file_base, file_ext = os.path.splitext(file_name)
 
-        upload_dir = os.path.join(cls.scratch, 'upload_' + file_ext[1:])
-
-        try:
-            os.stat(upload_dir)
-        except:
-            os.mkdir(upload_dir)
+        timestamp = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds() * 1000)
+        upload_dir = os.path.join(cls.scratch, 'upload_' + file_ext[1:] + str(timestamp))
+        os.mkdir(upload_dir)
 
         ret = {}
         ret['name'] = file_name
@@ -362,7 +360,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-
 
     def upload_alignment_success(self, params, expected):
 
@@ -449,13 +446,12 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         self.download_alignment_success('test_download_bam', self.test_bam_file, self.test_sam_file, self.test_bai_file)
 
 
-    def export_alignment_success(self, staged_name, expectedBAM):
+    def export_alignment_success(self, staged_name, export_params, expected_num_files, expectedBAM, expectedSAM, expectedBAI):
 
         test_name = inspect.stack()[1][3]
         print('\n*** starting expected export pass test: ' + test_name + ' **')
-        shocknode = self.getImpl().export_alignment(
-            self.ctx,
-            {'source_ref': self.staged[staged_name]['ref']})[0]['shock_id']
+        export_params['source_ref'] = self.staged[staged_name]['ref']
+        shocknode = self.getImpl().export_alignment(self.ctx, export_params)[0]['shock_id']
         node_url = self.shockURL + '/node/' + shocknode
         headers = {'Authorization': 'OAuth ' + self.token}
         r = requests.get(node_url, headers=headers, allow_redirects=True)
@@ -475,21 +471,38 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         with ZipFile(file_path) as z:
             z.extractall(tempdir)
         print('zip file contents: ' + str(os.listdir(tempdir)))
-        foundBAM = False
+        count = 0
         for f in os.listdir(tempdir):
             if '.bam' in f :
-                foundBAM = True
                 print('BAM file: ' + f)
+                count += 1
                 with open(os.path.join(tempdir, f)) as fl:
                     md5 = hashlib.md5(fl.read()).hexdigest()
                     self.assertEqual(md5, expectedBAM.get('md5'))
-        if not foundBAM:
-            raise TestError('no BAM file')
+            if '.sam' in f :
+                print('SAM file: ' + f)
+                count += 1
+                with open(os.path.join(tempdir, f)) as fl:
+                    md5 = hashlib.md5(fl.read()).hexdigest()
+                    self.assertEqual(md5, expectedSAM.get('md5'))
+            if '.bai' in f :
+                print('BAI file: ' + f)
+                count += 1
+                with open(os.path.join(tempdir, f)) as fl:
+                    md5 = hashlib.md5(fl.read()).hexdigest()
+                    self.assertEqual(md5, expectedBAI.get('md5'))
+        self.assertEquals(count, expected_num_files)
 
 
     def test_success_export_alignment(self):
 
-        self.export_alignment_success('test_download_bam', self.test_bam_file)
+        opt_params = {'exportSAM': 'True',
+                      'exportBAI': 'True' }
+
+        self.export_alignment_success('test_download_bam', opt_params, 3,
+                                      self.test_bam_file,
+                                      self.test_sam_file,
+                                      self.test_bai_file)
 
 
     def test_valid_validate_alignment(self):
@@ -611,7 +624,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                         'file_path': 'bar'
                       }, self.more_upload_params),
             'No workspace with name 1s exists')
-
+    
 
     # TO DO:  add more tests
 
