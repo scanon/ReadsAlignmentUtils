@@ -336,7 +336,7 @@ the stored alignment.
                          'condition': params.get(self.PARAM_IN_CONDITION),
                          'read_sample_id': params.get(self.PARAM_IN_READ_LIB_REF),
                          'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF),
-                         'aligner_stats': aligner_stats
+                         'alignment_stats': aligner_stats
                         }
 
         aligner_data['library_type'] = self._get_read_lib_type(ctx, params.get(self.PARAM_IN_READ_LIB_REF))
