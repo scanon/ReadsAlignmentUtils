@@ -223,7 +223,6 @@ $return is a ReadsAlignmentUtils.UploadAlignmentOutput
 UploadAlignmentParams is a reference to a hash where the following keys are defined:
 	destination_ref has a value which is a string
 	file_path has a value which is a string
-	library_type has a value which is a string
 	condition has a value which is a string
 	assembly_or_genome_ref has a value which is a string
 	read_library_ref has a value which is a string
@@ -254,7 +253,6 @@ $return is a ReadsAlignmentUtils.UploadAlignmentOutput
 UploadAlignmentParams is a reference to a hash where the following keys are defined:
 	destination_ref has a value which is a string
 	file_path has a value which is a string
-	library_type has a value which is a string
 	condition has a value which is a string
 	assembly_or_genome_ref has a value which is a string
 	read_library_ref has a value which is a string
@@ -811,12 +809,12 @@ validated has a value which is a ReadsAlignmentUtils.boolean
 
         file_path              -  Source: file with the path of the sam or bam file to be uploaded
 
-        library_type           - ???single_end??? or ???paired_end???
+        read_library_ref       -  workspace object ref of the read sample used to make
+                                  the alignment file
         condition              -
         assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
                                   used to build the alignment
-        read_library_ref       -  workspace object ref of the read sample used to make
-                                  the alignment file
+
 
     *
 
@@ -829,7 +827,6 @@ validated has a value which is a ReadsAlignmentUtils.boolean
 a reference to a hash where the following keys are defined:
 destination_ref has a value which is a string
 file_path has a value which is a string
-library_type has a value which is a string
 condition has a value which is a string
 assembly_or_genome_ref has a value which is a string
 read_library_ref has a value which is a string
@@ -853,7 +850,6 @@ ignore has a value which is a reference to a list where each element is a string
 a reference to a hash where the following keys are defined:
 destination_ref has a value which is a string
 file_path has a value which is a string
-library_type has a value which is a string
 condition has a value which is a string
 assembly_or_genome_ref has a value which is a string
 read_library_ref has a value which is a string

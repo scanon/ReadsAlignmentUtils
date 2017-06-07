@@ -56,14 +56,12 @@ class ReadsAlignmentUtils(object):
            object ref is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id
            is the workspace name or id and obj_name_or_id is the object name
            or id file_path              -  Source: file with the path of the
-           sam or bam file to be uploaded library_type           -
-           ???single_end??? or ???paired_end??? condition              -
-           assembly_or_genome_ref -  workspace object ref of assembly or
-           genome annotation that was used to build the alignment
-           read_library_ref       -  workspace object ref of the read sample
-           used to make the alignment file *) -> structure: parameter
-           "destination_ref" of String, parameter "file_path" of String,
-           parameter "library_type" of String, parameter "condition" of
+           sam or bam file to be uploaded read_library_ref       -  workspace
+           object ref of the read sample used to make the alignment file
+           condition              - assembly_or_genome_ref -  workspace
+           object ref of assembly or genome annotation that was used to build
+           the alignment *) -> structure: parameter "destination_ref" of
+           String, parameter "file_path" of String, parameter "condition" of
            String, parameter "assembly_or_genome_ref" of String, parameter
            "read_library_ref" of String, parameter "aligned_using" of String,
            parameter "aligner_version" of String, parameter "aligner_opts" of

@@ -22,12 +22,11 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *                                   where ws_name_or_id is the workspace name or id
  *                                   and obj_name_or_id is the object name or id
  *         file_path              -  Source: file with the path of the sam or bam file to be uploaded
- *         library_type           - ???single_end??? or ???paired_end???
+ *         read_library_ref       -  workspace object ref of the read sample used to make
+ *                                   the alignment file
  *         condition              -
  *         assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
  *                                   used to build the alignment
- *         read_library_ref       -  workspace object ref of the read sample used to make
- *                                   the alignment file
  *     *
  * </pre>
  * 
@@ -37,7 +36,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "destination_ref",
     "file_path",
-    "library_type",
     "condition",
     "assembly_or_genome_ref",
     "read_library_ref",
@@ -58,8 +56,6 @@ public class UploadAlignmentParams {
     private java.lang.String destinationRef;
     @JsonProperty("file_path")
     private java.lang.String filePath;
-    @JsonProperty("library_type")
-    private java.lang.String libraryType;
     @JsonProperty("condition")
     private java.lang.String condition;
     @JsonProperty("assembly_or_genome_ref")
@@ -115,21 +111,6 @@ public class UploadAlignmentParams {
 
     public UploadAlignmentParams withFilePath(java.lang.String filePath) {
         this.filePath = filePath;
-        return this;
-    }
-
-    @JsonProperty("library_type")
-    public java.lang.String getLibraryType() {
-        return libraryType;
-    }
-
-    @JsonProperty("library_type")
-    public void setLibraryType(java.lang.String libraryType) {
-        this.libraryType = libraryType;
-    }
-
-    public UploadAlignmentParams withLibraryType(java.lang.String libraryType) {
-        this.libraryType = libraryType;
         return this;
     }
 
@@ -340,7 +321,7 @@ public class UploadAlignmentParams {
 
     @Override
     public java.lang.String toString() {
-        return ((((((((((((((((((((((((((((((((((("UploadAlignmentParams"+" [destinationRef=")+ destinationRef)+", filePath=")+ filePath)+", libraryType=")+ libraryType)+", condition=")+ condition)+", assemblyOrGenomeRef=")+ assemblyOrGenomeRef)+", readLibraryRef=")+ readLibraryRef)+", alignedUsing=")+ alignedUsing)+", alignerVersion=")+ alignerVersion)+", alignerOpts=")+ alignerOpts)+", replicateId=")+ replicateId)+", platform=")+ platform)+", bowtie2Index=")+ bowtie2Index)+", samplesetRef=")+ samplesetRef)+", mappedSampleId=")+ mappedSampleId)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((((((((((((((((((("UploadAlignmentParams"+" [destinationRef=")+ destinationRef)+", filePath=")+ filePath)+", condition=")+ condition)+", assemblyOrGenomeRef=")+ assemblyOrGenomeRef)+", readLibraryRef=")+ readLibraryRef)+", alignedUsing=")+ alignedUsing)+", alignerVersion=")+ alignerVersion)+", alignerOpts=")+ alignerOpts)+", replicateId=")+ replicateId)+", platform=")+ platform)+", bowtie2Index=")+ bowtie2Index)+", samplesetRef=")+ samplesetRef)+", mappedSampleId=")+ mappedSampleId)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

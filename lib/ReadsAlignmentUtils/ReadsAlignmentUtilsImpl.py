@@ -15,6 +15,8 @@ from pprint import pformat
 from core import script_utils
 from DataFileUtil.DataFileUtilClient import DataFileUtil
 from DataFileUtil.baseclient import ServerError as DFUError
+from ReadsUtils.ReadsUtilsClient import ReadsUtils
+from ReadsUtils.baseclient import ServerError
 from ReadsAlignmentUtils.core.sam_tools import SamTools
 from Workspace.WorkspaceClient import Workspace
 from Workspace.baseclient import ServerError as WorkspaceError
@@ -44,7 +46,7 @@ the stored alignment.
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "f1b79aaba206890c9a937e10e4c1a83e5b6a8b47"
+    GIT_COMMIT_HASH = "21bbe7e413e138da012ed4d79d4520a628d6476b"
 
     #BEGIN_CLASS_HEADER
 
@@ -52,7 +54,6 @@ the stored alignment.
     PARAM_IN_FILE = 'file_path'
     PARAM_IN_SRC_REF = 'source_ref'
     PARAM_IN_DST_REF = 'destination_ref'
-    PARAM_IN_LIB_TYPE = 'library_type'
     PARAM_IN_CONDITION = 'condition'
     PARAM_IN_READ_LIB_REF = 'read_library_ref'
     PARAM_IN_ASM_GEN_REF = 'assembly_or_genome_ref'
@@ -109,7 +110,7 @@ the stored alignment.
         if not bool(obj_name_id.strip()):
             raise ValueError("Object name or id is required in " + self.PARAM_IN_DST_REF)
 
-        dfu = DataFileUtil(self.callback_url, token=ctx['token'])
+        dfu = DataFileUtil(self.callback_url, token=ctx['token'], service_ver='dev')
 
         if not isinstance(ws_name_id, int):
 
@@ -130,7 +131,6 @@ the stored alignment.
 
         self._check_required_param(params, [self.PARAM_IN_DST_REF,
                                             self.PARAM_IN_FILE,
-                                            self.PARAM_IN_LIB_TYPE,
                                             self.PARAM_IN_CONDITION,
                                             self.PARAM_IN_READ_LIB_REF,
                                             self.PARAM_IN_ASM_GEN_REF
@@ -157,6 +157,37 @@ the stored alignment.
             self.log(str(wse))
             raise
         return info
+
+
+    def _get_read_lib_type(self, ctx, read_lib_ref):
+
+        ws_info = self._get_ws_info(read_lib_ref)
+        readcli = ReadsUtils(self.callback_url, token=ctx['token'], service_ver='dev')
+        reads_ref = ws_info[7] + '/' + ws_info[1]
+
+        typeerr = ('Supported types: KBaseFile.SingleEndLibrary ' +
+                   'KBaseFile.PairedEndLibrary ' +
+                   'KBaseAssembly.SingleEndLibrary ' +
+                   'KBaseAssembly.PairedEndLibrary')
+
+        try:
+            reads = readcli.download_reads({'read_libraries': [reads_ref],
+                                            'interleaved': 'false',
+                                            'gzipped': None
+                                            })['files']
+        except ServerError as se:
+            self.log('logging stacktrace from dynamic client error')
+            self.log(se.data)
+            if typeerr in se.message:
+                prefix = se.message.split('.')[0]
+                raise ValueError(
+                    prefix + '. Only the types ' +
+                    'KBaseFile.SingleEndLibrary KBaseAssembly.PairedEndLibrary ' +
+                    'KBaseAssembly.SingleEndLibrary and KBaseFile.PairedEndLibrary are supported')
+
+        self.log('Got reads data from converter:\n' + pformat(reads))
+
+        return reads[reads_ref]['files']['type']
 
 
     def _get_aligner_stats(self, file):
@@ -245,14 +276,12 @@ the stored alignment.
            object ref is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id
            is the workspace name or id and obj_name_or_id is the object name
            or id file_path              -  Source: file with the path of the
-           sam or bam file to be uploaded library_type           -
-           ???single_end??? or ???paired_end??? condition              -
-           assembly_or_genome_ref -  workspace object ref of assembly or
-           genome annotation that was used to build the alignment
-           read_library_ref       -  workspace object ref of the read sample
-           used to make the alignment file *) -> structure: parameter
-           "destination_ref" of String, parameter "file_path" of String,
-           parameter "library_type" of String, parameter "condition" of
+           sam or bam file to be uploaded read_library_ref       -  workspace
+           object ref of the read sample used to make the alignment file
+           condition              - assembly_or_genome_ref -  workspace
+           object ref of assembly or genome annotation that was used to build
+           the alignment *) -> structure: parameter "destination_ref" of
+           String, parameter "file_path" of String, parameter "condition" of
            String, parameter "assembly_or_genome_ref" of String, parameter
            "read_library_ref" of String, parameter "aligned_using" of String,
            parameter "aligner_version" of String, parameter "aligner_opts" of
@@ -306,11 +335,11 @@ the stored alignment.
                          'size': file_size,
                          'condition': params.get(self.PARAM_IN_CONDITION),
                          'read_sample_id': params.get(self.PARAM_IN_READ_LIB_REF),
-                         'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF)
+                         'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF),
+                         'aligner_stats': aligner_stats
                         }
 
-        aligner_data['library_type'] = params.get(self.PARAM_IN_LIB_TYPE)
-        #aligner_data['library_type'] = self.get_library_type(params.get(self.PARAM_IN_LIB_TYPE))
+        aligner_data['library_type'] = self._get_read_lib_type(ctx, params.get(self.PARAM_IN_READ_LIB_REF))
 
         optional_params = [ self.PARAM_IN_ALIGNED_USING,
                             self.PARAM_IN_ALIGNER_VER,
@@ -338,7 +367,7 @@ the stored alignment.
 
         returnVal = {'obj_ref': str(res[6]) + '/' + str(res[0]) + '/' + str(res[4])}
 
-        print("uploaded object:")
+        print('Uploaded object: ')
         print(returnVal)
 
         #END upload_alignment

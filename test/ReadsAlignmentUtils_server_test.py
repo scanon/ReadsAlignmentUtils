@@ -22,6 +22,8 @@ from Workspace.baseclient import ServerError as WorkspaceError
 from Workspace.WorkspaceClient import Workspace
 from DataFileUtil.baseclient import ServerError as DFUError
 from DataFileUtil.DataFileUtilClient import DataFileUtil
+from ReadsUtils.baseclient import ServerError
+from ReadsUtils.ReadsUtilsClient import ReadsUtils
 from biokbase.AbstractHandle.Client import AbstractHandle as HandleService  # @UnresolvedImport
 from ReadsAlignmentUtils.ReadsAlignmentUtilsImpl import ReadsAlignmentUtils
 from ReadsAlignmentUtils.ReadsAlignmentUtilsServer import MethodContext
@@ -39,6 +41,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.token = environ.get('KB_AUTH_TOKEN', None)
+        cls.callbackURL = environ.get('SDK_CALLBACK_URL')
         config_file = environ.get('KB_DEPLOYMENT_CONFIG', None)
         cls.cfg = {}
         config = ConfigParser()
@@ -73,9 +76,11 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         print('created workspace ' + cls.getWsName())
 
         cls.serviceImpl = ReadsAlignmentUtils(cls.cfg)
+        cls.readUtilsImpl = ReadsUtils(cls.callbackURL, token=cls.token)
+        cls.dfu = DataFileUtil(cls.callbackURL, token=cls.token)
+
         cls.scratch = cls.cfg['scratch']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
-        cls.dfu = DataFileUtil(os.environ['SDK_CALLBACK_URL'], token=cls.token)
 
         cls.staged = {}
         cls.nodes_to_delete = []
@@ -88,6 +93,12 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         if hasattr(cls, 'wsName'):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
+        if hasattr(cls, 'nodes_to_delete'):
+            for node in cls.nodes_to_delete:
+                cls.delete_shock_node(node)
+        if hasattr(cls, 'handles_to_delete'):
+            cls.hs.delete_handles(cls.hs.ids_to_handles(cls.handles_to_delete))
+            print('Deleted handles ' + str(cls.handles_to_delete))
 
 
     def getWsClient(self):
@@ -162,6 +173,59 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         md5 = node['file']['checksum']['md5']
         return node['id'], handle_id, md5, node['file']['size']
 
+    @classmethod
+    def upload_reads(cls, wsobjname, object_body, fwd_reads,
+                     rev_reads=None, single_end=False, sequencing_tech='Illumina',
+                     single_genome='1'):
+
+        ob = dict(object_body)  # copy
+        ob['sequencing_tech'] = sequencing_tech
+        #        ob['single_genome'] = single_genome
+        ob['wsname'] = cls.getWsName()
+        ob['name'] = wsobjname
+        if single_end or rev_reads:
+            ob['interleaved'] = 0
+        else:
+            ob['interleaved'] = 1
+        print('\n===============staging data for object ' + wsobjname +
+              '================')
+        print('uploading forward reads file ' + fwd_reads['file'])
+        fwd_id, fwd_handle_id, fwd_md5, fwd_size = \
+            cls.upload_file_to_shock_and_get_handle(fwd_reads['file'])
+
+        ob['fwd_id'] = fwd_id
+        rev_id = None
+        rev_handle_id = None
+        if rev_reads:
+            print('uploading reverse reads file ' + rev_reads['file'])
+            rev_id, rev_handle_id, rev_md5, rev_size = \
+                cls.upload_file_to_shock_and_get_handle(rev_reads['file'])
+            ob['rev_id'] = rev_id
+        obj_ref = cls.readUtilsImpl.upload_reads(ob)
+        objdata = cls.wsClient.get_object_info_new({
+            'objects': [{'ref': obj_ref['obj_ref']}]
+        })[0]
+        cls.staged[wsobjname] = {'info': objdata,
+                                 'ref': cls.make_ref(objdata),
+                                 'fwd_node_id': fwd_id,
+                                 'rev_node_id': rev_id,
+                                 'fwd_handle_id': fwd_handle_id,
+                                 'rev_handle_id': rev_handle_id
+                                 }
+
+
+    @classmethod
+    def upload_empty_data(cls, wsobjname):
+        objdata = cls.wsClient.save_objects({
+            'workspace': cls.getWsName(),
+            'objects': [{'type': 'Empty.AType',
+                         'data': {},
+                         'name': 'empty'
+                         }]
+        })[0]
+        cls.staged[wsobjname] = {'info': objdata,
+                                 'ref': cls.make_ref(objdata),
+                                 }
 
     @classmethod
     def save_ws_obj(cls, obj, objname, objtype):
@@ -177,11 +241,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                          }]
         })[0]
 
-    more_upload_params = {'library_type': 'single_end',
-                          'read_library_ref': 'Ecoli_SE_8083_R1.fastq',
-                          'assembly_or_genome_ref': 'Escherichia_coli_K12',
-                          'condition': 'test_condition'
-                          }
 
     @classmethod
     def uploadTestData(cls, wsobjname, object_body, test_file):
@@ -207,7 +266,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         ob['file'] = a_handle
         ob['size'] = a_size
-        ob['library_type'] = cls.more_upload_params.get('library_type')
+        ob['library_type'] = 'paired'
         ob['condition'] = cls.more_upload_params.get('condition')
         ob['read_sample_id'] = cls.more_upload_params.get('read_library_ref')
         ob['genome_id'] = cls.more_upload_params.get('assembly_or_genome_ref')
@@ -228,10 +287,19 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
     @classmethod
     def setupTestFile(cls, file_name):
 
+        file_base, file_ext = os.path.splitext(file_name)
+
+        upload_dir = os.path.join(cls.scratch, 'upload_' + file_ext[1:])
+
+        try:
+            os.stat(upload_dir)
+        except:
+            os.mkdir(upload_dir)
+
         ret = {}
         ret['name'] = file_name
         ret['data_file'] = os.path.join('data/samtools', file_name)
-        ret['file_path'] = os.path.join(cls.scratch, file_name)
+        ret['file_path'] = os.path.join(upload_dir, file_name)
         ret['size'] = cls.getSize(ret.get('data_file'))
         ret['md5'] = cls.md5(ret.get('data_file'))
 
@@ -249,10 +317,24 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         ###  copy files to scratch directory for upload test functions
 
+
         shutil.copy(cls.test_bam_file['data_file'], cls.test_bam_file['file_path'])
         shutil.copy(cls.test_sam_file['data_file'], cls.test_sam_file['file_path'])
 
-        ###  upload the file to be used by download test functions
+        ### upload reads and assembly to be used as input parameters to upload_assembly
+
+        int_reads = {'file': 'data/interleaved.fq',
+                     'name': '',
+                     'type': ''}
+        cls.upload_reads('intbasic', {'single_genome': 1}, int_reads)
+        cls.upload_empty_data('empty')
+
+        cls.more_upload_params = {
+                                  'read_library_ref': cls.getWsName() + '/intbasic',
+                                  'assembly_or_genome_ref': cls.getWsName() + '/test_aseembly',
+                                  'condition': 'test_condition'
+                                 }
+        ###  upload the alignment file to be used by download test functions
 
         cls.uploadTestData('test_download_bam', cls.more_upload_params, cls.test_bam_file)
         cls.uploadTestData('test_download_sam', cls.more_upload_params, cls.test_sam_file)
@@ -298,9 +380,9 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             'KBaseRNASeq.RNASeqAlignment'), True)
         d = obj['data']
         self.assertEqual(d['genome_id'], params.get('assembly_or_genome_ref'))
-        self.assertEqual(d['library_type'], params.get('library_type'))
         self.assertEqual(d['condition'], params.get('condition'))
         self.assertEqual(d['read_sample_id'], params.get('read_library_ref'))
+        self.assertEqual(d['library_type'], 'paired')
 
         self.assertEqual(d['size'], expected.get('size'))
 
@@ -450,8 +532,23 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                                 error))
         else:
             self.assertEqual(error, str(context.exception.message))
-            
-            
+
+    def test_upload_fail_empty_reads(self):
+
+        params = dictmerge({
+                'destination_ref': self.getWsName() + '/test_download_sam',
+                'file_path': self.test_sam_file['file_path']
+            }, self.more_upload_params)
+
+        params['read_library_ref'] = self.getWsName() + '/empty'
+
+        self.fail_upload_alignment(params, 'Invalid type for object ' +
+                       self.staged['empty']['ref'] + ' (empty). Only the ' +
+                        'types KBaseFile.SingleEndLibrary KBaseAssembly.PairedEndLibrary ' +
+                        'KBaseAssembly.SingleEndLibrary and KBaseFile.PairedEndLibrary ' +
+                        'are supported')
+
+
     def test_upload_fail_no_dst_ref(self):
         self.fail_upload_alignment(
             dictmerge({

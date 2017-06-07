@@ -52,12 +52,12 @@ module ReadsAlignmentUtils {
 
         file_path              -  Source: file with the path of the sam or bam file to be uploaded
 
-        library_type           - ‘single_end’ or ‘paired_end’
+        read_library_ref       -  workspace object ref of the read sample used to make
+                                  the alignment file
         condition              -
         assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
                                   used to build the alignment
-        read_library_ref       -  workspace object ref of the read sample used to make
-                                  the alignment file
+
 
     **/
 
@@ -66,7 +66,6 @@ module ReadsAlignmentUtils {
         string destination_ref;
         string file_path;
 
-        string library_type;
         string condition;
         string assembly_or_genome_ref;
         string read_library_ref;
@@ -180,7 +179,7 @@ module ReadsAlignmentUtils {
      } ExportParams;
 
      typedef structure {
-         string shock_id;    /* shock id of file to export */
+         string shock_id;     /* shock id of file to export */
      } ExportOutput;
 
 
