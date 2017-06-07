@@ -175,7 +175,17 @@ module ReadsAlignmentUtils {
     **/
 
      typedef structure {
-         string source_ref;   /* workspace object reference */
+         string source_ref;   /* workspace object reference  */
+         boolean exportBAM;   /* Optional - default is true  */
+         boolean exportSAM;   /* Optional - default is false */
+         boolean exportBAI;   /* Optional - default is false */
+         boolean validate;    /* Optional - default is false
+                                   Set to true if input needs to be validated  */
+         list<string> ignore; /* Optional. List of validation errors to ignore.
+                                    Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
+                                                'INVALID_MAPPING_QUALITY']
+         See http://broadinstitute.github.io/picard/command-line-overview.html#ValidateSamFile */
+
      } ExportParams;
 
      typedef structure {
