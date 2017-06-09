@@ -5,7 +5,7 @@ import traceback
 
 
 '''
-A utility python module containing a set of methods necessary for this kbase 
+A utility python module containing a set of methods necessary for this kbase
 module.
 '''
 
@@ -15,20 +15,22 @@ LEVELS = {'debug': logging.DEBUG,
           'error': logging.ERROR,
           'critical': logging.CRITICAL}
 
-def log(message, level=logging.INFO, logger = None):
+
+def log(message, level=logging.INFO, logger=None):
     if logger is None:
         if level == logging.DEBUG:
-            print('\nDEBUG: '+message+'\n')
+            print('\nDEBUG: ' + message + '\n')
         elif level == logging.INFO:
-            print('\nINFO: '+message+'\n')
+            print('\nINFO: ' + message + '\n')
         elif level == logging.WARNING:
-            print('\nWARNING: '+message+'\n')
+            print('\nWARNING: ' + message + '\n')
         elif level == logging.ERROR:
-            print('\nERROR: ' + message+'\n')
+            print('\nERROR: ' + message + '\n')
         elif level == logging.CRITICAL:
-            print('\nCRITICAL: ' + message+'\n')
+            print('\nCRITICAL: ' + message + '\n')
     else:
-        logger.log(level, '\n'+message+'\n')
+        logger.log(level, '\n' + message + '\n')
+
 
 def whereis(program):
     """
@@ -36,7 +38,8 @@ def whereis(program):
     `None`` otherwise
     """
     for path in os.environ.get('PATH', '').split(':'):
-    	if os.path.exists(os.path.join(path, program)) and not os.path.isdir(os.path.join(path, program)):
+        if os.path.exists(os.path.join(path, program)) and not os.path.isdir(
+                os.path.join(path, program)):
             return os.path.join(path, program)
     return None
 
@@ -62,7 +65,13 @@ def runProgram(logger=None,
         progPath = progName
     progPath = whereis(progName)
     if not progPath:
-        raise RuntimeError(None,'{0} command not found in your PATH environmental variable. {1}'.format(progName,os.environ.get('PATH', '')))
+        raise RuntimeError(
+            None,
+            '{0} command not found in your PATH environmental variable. {1}'.format(
+                progName,
+                os.environ.get(
+                    'PATH',
+                    '')))
 
     # Construct shell command
     cmdStr = "%s %s" % (progPath, argStr)
@@ -111,9 +120,14 @@ def check_sys_stat(logger):
     check_memory_usage(logger)
     check_cpu_usage(logger)
 
+
 def check_disk_space(logger):
     runProgram(logger=logger, progName="df", argStr="-h")
+
+
 def check_memory_usage(logger):
     runProgram(logger=logger, progName="vmstat", argStr="-s")
+
+
 def check_cpu_usage(logger):
     runProgram(logger=logger, progName="mpstat", argStr="-P ALL")
