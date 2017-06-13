@@ -20,12 +20,11 @@ except:
 from pprint import pprint  # noqa: F401
 
 from biokbase.workspace.client import Workspace as workspaceService
-from Workspace.baseclient import ServerError as WorkspaceError
 from Workspace.WorkspaceClient import Workspace
-from DataFileUtil.baseclient import ServerError as DFUError
 from DataFileUtil.DataFileUtilClient import DataFileUtil
-from ReadsUtils.baseclient import ServerError
 from ReadsUtils.ReadsUtilsClient import ReadsUtils
+from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
+from GenomeFileUtil.GenomeFileUtilClient import GenomeFileUtil
 from biokbase.AbstractHandle.Client import AbstractHandle as HandleService  # @UnresolvedImport
 from ReadsAlignmentUtils.ReadsAlignmentUtilsImpl import ReadsAlignmentUtils
 from ReadsAlignmentUtils.ReadsAlignmentUtilsServer import MethodContext
@@ -80,6 +79,8 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         cls.serviceImpl = ReadsAlignmentUtils(cls.cfg)
         cls.readUtilsImpl = ReadsUtils(cls.callbackURL, token=cls.token)
         cls.dfu = DataFileUtil(cls.callbackURL, token=cls.token)
+        cls.assemblyUtil = AssemblyUtil(cls.callbackURL, token=cls.token)
+        cls.gfu = GenomeFileUtil(cls.callbackURL, token=cls.token)
 
         cls.scratch = cls.cfg['scratch']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
@@ -215,6 +216,27 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                                  'rev_handle_id': rev_handle_id
                                  }
 
+    @classmethod
+    def upload_genome(cls, wsobj_name, file_name):
+        genbank_file_path = os.path.join(cls.scratch, file_name)
+        shutil.copy(os.path.join('data', file_name), genbank_file_path)
+        genome_obj = cls.gfu.genbank_to_genome({'file': {'path': genbank_file_path},
+                                                'workspace_name': cls.getWsName(),
+                                                'genome_name': wsobj_name
+                                                })
+        cls.staged[wsobj_name] = {'info': genome_obj['genome_info'],
+                                  'ref': genome_obj['genome_ref']}
+
+    @classmethod
+    def upload_assembly(cls, wsobj_name, file_name):
+        fasta_path = os.path.join(cls.scratch, file_name)
+        shutil.copy(os.path.join('data', file_name), fasta_path)
+        assembly_ref = cls.assemblyUtil.save_assembly_from_fasta({'file': {'path': fasta_path},
+                                                                  'workspace_name': cls.getWsName(),
+                                                                  'assembly_name': wsobj_name
+                                                                  })
+        cls.staged[wsobj_name] = {'info': None,
+                                  'ref': assembly_ref}
 
     @classmethod
     def upload_empty_data(cls, wsobjname):
@@ -315,16 +337,17 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         ###  copy files to scratch directory for upload test functions
 
-
         shutil.copy(cls.test_bam_file['data_file'], cls.test_bam_file['file_path'])
         shutil.copy(cls.test_sam_file['data_file'], cls.test_sam_file['file_path'])
 
-        ### upload reads and assembly to be used as input parameters to upload_assembly
+        ### upload reads, genome and assembly to be used as input parameters to upload_alignment
 
         int_reads = {'file': 'data/interleaved.fq',
                      'name': '',
                      'type': ''}
         cls.upload_reads('intbasic', {'single_genome': 1}, int_reads)
+        cls.upload_genome('test_genome', 'minimal.gbff')
+        cls.upload_assembly('test_assembly', 'test.fna')
         cls.upload_empty_data('empty')
 
         cls.more_upload_params = {
@@ -624,7 +647,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                         'file_path': 'bar'
                       }, self.more_upload_params),
             'No workspace with name 1s exists')
-    
+
 
     # TO DO:  add more tests
 

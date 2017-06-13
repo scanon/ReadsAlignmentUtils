@@ -55,8 +55,9 @@ module ReadsAlignmentUtils {
         read_library_ref       -  workspace object ref of the read sample used to make
                                   the alignment file
         condition              -
-        assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
+        assembly_or_genome_ref -  workspace object ref of genome assembly or genome object that was
                                   used to build the alignment
+
 
 
     **/
