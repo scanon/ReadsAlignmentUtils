@@ -13,12 +13,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * <p>Original spec-file type: AlignmentStats</p>
- * <pre>
- * * @optional singletons multiple_alignments, properly_paired,
- * alignment_rate, unmapped_reads, mapped_sections total_reads,
- * mapped_reads
- *     *
- * </pre>
+ * 
  * 
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

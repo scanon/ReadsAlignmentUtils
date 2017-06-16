@@ -16,17 +16,17 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * <p>Original spec-file type: UploadAlignmentParams</p>
  * <pre>
  * *
- *       Required input parameters for uploading a reads alignment
- *         string destination_ref -  object reference of alignment destination. The
- *                                   object ref is 'ws_name_or_id/obj_name_or_id'
- *                                   where ws_name_or_id is the workspace name or id
- *                                   and obj_name_or_id is the object name or id
- *         file_path              -  Source: file with the path of the sam or bam file to be uploaded
- *         read_library_ref       -  workspace object ref of the read sample used to make
- *                                   the alignment file
- *         condition              -
- *         assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
- *                                   used to build the alignment
+ * Required input parameters for uploading a reads alignment
+ *   string destination_ref -  object reference of alignment destination. The
+ *                             object ref is 'ws_name_or_id/obj_name_or_id'
+ *                             where ws_name_or_id is the workspace name or id
+ *                             and obj_name_or_id is the object name or id
+ *   file_path              -  Source: file with the path of the sam or bam file to be uploaded
+ *   read_library_ref       -  workspace object ref of the read sample used to make
+ *                             the alignment file
+ *   condition              -
+ *   assembly_or_genome_ref -  workspace object ref of genome assembly or genome object that was
+ *                             used to build the alignment
  *     *
  * </pre>
  * 

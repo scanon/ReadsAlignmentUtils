@@ -46,11 +46,10 @@ the stored alignment.
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "4eff9c09cd33f22100efc38cc25cfd112eadd07f"
+    GIT_COMMIT_HASH = "0efba19ac937a63023857b949d3fecc810cee999"
 
     #BEGIN_CLASS_HEADER
 
-    ### required params
     PARAM_IN_FILE = 'file_path'
     PARAM_IN_SRC_REF = 'source_ref'
     PARAM_IN_DST_REF = 'destination_ref'
@@ -58,7 +57,6 @@ the stored alignment.
     PARAM_IN_READ_LIB_REF = 'read_library_ref'
     PARAM_IN_ASM_GEN_REF = 'assembly_or_genome_ref'
 
-    ### optional params
     PARAM_IN_ALIGNED_USING = 'aligned_using'
     PARAM_IN_ALIGNER_VER = 'aligner_version'
     PARAM_IN_ALIGNER_OPTS = 'aligner_opts'
@@ -71,35 +69,29 @@ the stored alignment.
     INVALID_WS_OBJ_NAME_RE = re.compile('[^\\w\\|._-]')
     INVALID_WS_NAME_RE = re.compile('[^\\w:._-]')
 
-
     def log(self, message, prefix_newline=False):
         print(('\n' if prefix_newline else '') +
               str(time.time()) + ': ' + message)
 
-
     def _get_file_path_info(self, file_path):
-
-        ### returns the dir name, file name, base name and extension
 
         dir, file_name = os.path.split(file_path)
         file_base, file_ext = os.path.splitext(file_name)
 
         return dir, file_name, file_base, file_ext
 
-
     def _check_required_param(self, in_params, param_list):
-
-       ###  Checks if each of the params in the list are in the input params
-
+       """
+       Checks if each of the params in the list are in the input params
+       """
        for param in param_list:
             if (param not in in_params or not in_params[param]):
                 raise ValueError(param + ' parameter is required')
 
-
     def _proc_ws_obj_params(self, ctx, params):
-
-        ###  Checks the validity of workspace and object params and returns them
-
+        """
+        Checks the validity of workspace and object params and returns them
+        """
         dst_ref = params.get(self.PARAM_IN_DST_REF)
 
         ws_name_id, obj_name_id = os.path.split(dst_ref)
@@ -124,31 +116,8 @@ the stored alignment.
 
         return ws_name_id, obj_name_id
 
-
-    def _proc_upload_alignment_params(self, ctx, params):
-
-        ###  Checks the presence and validity of upload alignment params
-
-        self._check_required_param(params, [self.PARAM_IN_DST_REF,
-                                            self.PARAM_IN_FILE,
-                                            self.PARAM_IN_CONDITION,
-                                            self.PARAM_IN_READ_LIB_REF,
-                                            self.PARAM_IN_ASM_GEN_REF
-                                            ])
-
-        ws_name_id, obj_name_id = self._proc_ws_obj_params(ctx, params)
-
-        file_path = params.get(self.PARAM_IN_FILE)
-
-        if not (os.path.isfile(file_path)):
-            raise ValueError('File does not exist: ' + file_path)
-
-        return ws_name_id, obj_name_id, file_path
-
-
     def _get_ws_info(self, obj_ref):
 
-        # get WS metadata to get obj_name
         ws = Workspace(self.ws_url)
         try:
             info = ws.get_object_info_new({'objects': [{'ref': obj_ref}]})[0]
@@ -157,7 +126,6 @@ the stored alignment.
             self.log(str(wse))
             raise
         return info
-
 
     def _get_read_lib_type(self, ctx, read_lib_ref):
 
@@ -169,7 +137,6 @@ the stored alignment.
                    'KBaseFile.PairedEndLibrary ' +
                    'KBaseAssembly.SingleEndLibrary ' +
                    'KBaseAssembly.PairedEndLibrary')
-
         try:
             reads = readcli.download_reads({'read_libraries': [reads_ref],
                                             'interleaved': 'false',
@@ -189,13 +156,43 @@ the stored alignment.
 
         return reads[reads_ref]['files']['type']
 
+    def _proc_upload_alignment_params(self, ctx, params):
+        """
+        Checks the presence and validity of upload alignment params
+        """
+        self._check_required_param(params, [self.PARAM_IN_DST_REF,
+                                            self.PARAM_IN_FILE,
+                                            self.PARAM_IN_CONDITION,
+                                            self.PARAM_IN_READ_LIB_REF,
+                                            self.PARAM_IN_ASM_GEN_REF
+                                            ])
 
-    def _get_aligner_stats(self, file):
+        ws_name_id, obj_name_id = self._proc_ws_obj_params(ctx, params)
 
-        ###  Gets the aligner stats from BAM file
+        file_path = params.get(self.PARAM_IN_FILE)
 
-        return self.samtools.get_stats(file)
+        if not (os.path.isfile(file_path)):
+            raise ValueError('File does not exist: ' + file_path)
 
+        lib_type = self._get_read_lib_type(ctx, params.get(self.PARAM_IN_READ_LIB_REF))
+
+        obj_type = self._get_ws_info(params.get(self.PARAM_IN_ASM_GEN_REF))[2]
+        if  obj_type.startswith('KBaseGenomes.Genome') or \
+            obj_type.startswith('KBaseGenomeAnnotations.Assembly') or \
+            obj_type.startswith('KBaseGenomes.ContigSet'):
+            pass
+        else:
+            raise ValueError(self.PARAM_IN_ASM_GEN_REF + ' parameter should be of type' +
+                                                         ' KBaseGenomes.Genome or' +
+                                                         ' KBaseGenomeAnnotations.Assembly or' +
+                                                         ' KBaseGenomes.ContigSet')
+        return ws_name_id, obj_name_id, file_path, lib_type
+
+    def _get_aligner_stats(self, bam_file):
+        """
+        Gets the aligner stats from BAM file
+        """
+        return self.samtools.get_stats(bam_file)
 
     def _validate(self, params):
         samt = SamTools(self.config, self.__LOGGER)
@@ -206,7 +203,6 @@ the stored alignment.
             rval = samt.validate(ifile=params['file_path'], ipath=None)
 
         return rval
-
 
     #END_CLASS_HEADER
 
@@ -240,9 +236,11 @@ the stored alignment.
     def validate_alignment(self, ctx, params):
         """
         :param params: instance of type "ValidateAlignmentParams" (* Input
-           parameters for validating a reads alignment *) -> structure:
-           parameter "file_path" of String, parameter "ignore" of list of
-           String
+           parameters for validating a reads alignment. For validation errors
+           to ignore, see
+           http://broadinstitute.github.io/picard/command-line-overview.html#V
+           alidateSamFile) -> structure: parameter "file_path" of String,
+           parameter "ignore" of list of String
         :returns: instance of type "ValidateAlignmentOutput" (* Results from
            validate alignment *) -> structure: parameter "validated" of type
            "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1))
@@ -279,10 +277,10 @@ the stored alignment.
            sam or bam file to be uploaded read_library_ref       -  workspace
            object ref of the read sample used to make the alignment file
            condition              - assembly_or_genome_ref -  workspace
-           object ref of assembly or genome annotation that was used to build
-           the alignment *) -> structure: parameter "destination_ref" of
-           String, parameter "file_path" of String, parameter "condition" of
-           String, parameter "assembly_or_genome_ref" of String, parameter
+           object ref of genome assembly or genome object that was used to
+           build the alignment *) -> structure: parameter "destination_ref"
+           of String, parameter "file_path" of String, parameter "condition"
+           of String, parameter "assembly_or_genome_ref" of String, parameter
            "read_library_ref" of String, parameter "aligned_using" of String,
            parameter "aligner_version" of String, parameter "aligner_opts" of
            mapping from String to String, parameter "replicate_id" of String,
@@ -303,11 +301,10 @@ the stored alignment.
         self.log('Starting upload Reads Alignment, parsing parameters ')
         pprint(params)
 
-        ws_name_id, obj_name_id, file_path = self._proc_upload_alignment_params(ctx, params)
+        ws_name_id, obj_name_id, file_path, lib_type = self._proc_upload_alignment_params(ctx, params)
 
         dir, file_name, file_base, file_ext = self._get_file_path_info(file_path)
 
-        # validate input file
         if 'validate' in params and params['validate'] is True:
             if self._validate(params) == 1:
                 raise Exception('{0} failed validation'.format(file_path))
@@ -321,25 +318,20 @@ the stored alignment.
 
         uploaded_file = dfu.file_to_shock({'file_path': bam_file,
                                            'make_handle': 1
-                                           })
-
+                                          })
         file_handle = uploaded_file['handle']
         file_size = uploaded_file['size']
 
-        ###  gets the required parameters for workspace object
-
         aligner_stats = self._get_aligner_stats(file_path)
-
         aligner_data = {
                          'file': file_handle,
                          'size': file_size,
                          'condition': params.get(self.PARAM_IN_CONDITION),
                          'read_sample_id': params.get(self.PARAM_IN_READ_LIB_REF),
+                         'library_type': lib_type,
                          'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF),
                          'alignment_stats': aligner_stats
                         }
-
-        aligner_data['library_type'] = self._get_read_lib_type(ctx, params.get(self.PARAM_IN_READ_LIB_REF))
 
         optional_params = [ self.PARAM_IN_ALIGNED_USING,
                             self.PARAM_IN_ALIGNER_VER,
@@ -348,12 +340,11 @@ the stored alignment.
                             self.PARAM_IN_PLATFORM,
                             self.PARAM_IN_BOWTIE2_INDEX,
                             self.PARAM_IN_SAMPLESET_REF,
-                            self.PARAM_IN_MAPPED_SAMPLE_ID ]
-
+                            self.PARAM_IN_MAPPED_SAMPLE_ID
+                          ]
         for opt_param in optional_params:
             if opt_param in params and params[opt_param] is not None:
                 aligner_data[opt_param] = params[opt_param]
-
 
         res = dfu.save_objects(
                 {"id": ws_name_id,
@@ -399,13 +390,11 @@ the stored alignment.
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "bam_file" of String, parameter "sam_file" of
            String, parameter "bai_file" of String, parameter "stats" of type
-           "AlignmentStats" (* @optional singletons multiple_alignments,
-           properly_paired, alignment_rate, unmapped_reads, mapped_sections
-           total_reads, mapped_reads *) -> structure: parameter
-           "properly_paired" of Long, parameter "multiple_alignments" of
-           Long, parameter "singletons" of Long, parameter "alignment_rate"
-           of Double, parameter "unmapped_reads" of Long, parameter
-           "mapped_reads" of Long, parameter "total_reads" of Long
+           "AlignmentStats" -> structure: parameter "properly_paired" of
+           Long, parameter "multiple_alignments" of Long, parameter
+           "singletons" of Long, parameter "alignment_rate" of Double,
+           parameter "unmapped_reads" of Long, parameter "mapped_reads" of
+           Long, parameter "total_reads" of Long
         """
         # ctx is the context object
         # return variables are: returnVal
@@ -442,7 +431,6 @@ the stored alignment.
 
         bam_file = alignment[0]['data']['file']['file_name']
 
-        # validate the downloaded bam file
         if 'validate' in params and params['validate'] is True:
             params['file_path'] = bam_file
             if self._validate(params) == 1:
@@ -482,6 +470,12 @@ the stored alignment.
 
         if len(returnVal) == 1:
             raise ValueError('No files were requested to be downloaded')
+
+        print('=======================AAAAAAAAAAAAA ============')
+        pprint(alignment)
+        print('=======================AAAAAAAAAAAAA ============')
+
+        returnVal['stats'] = alignment[0]['data']['alignment_stats']
 
         #END download_alignment
 
@@ -527,7 +521,6 @@ the stored alignment.
 
         files = self.download_alignment(ctx, download_params)[0]
 
-        # create the output directory and move the file there
         tempdir = tempfile.mkdtemp(dir=self.scratch)
         export_dir = os.path.join(tempdir, info[1])
         os.makedirs(export_dir)
@@ -547,7 +540,6 @@ the stored alignment.
         ret = dfu.package_for_download({'file_path': export_dir,
                                         'ws_refs': [inref]
                                         })
-
         output = {'shock_id': ret['shock_id']}
 
         #END export_alignment

@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 /**
  * <p>Original spec-file type: ValidateAlignmentParams</p>
  * <pre>
- * * Input parameters for validating a reads alignment *
+ * * Input parameters for validating a reads alignment. For validation errors to ignore,
+ * see http://broadinstitute.github.io/picard/command-line-overview.html#ValidateSamFile
  * </pre>
  * 
  */

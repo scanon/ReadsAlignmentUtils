@@ -7,9 +7,8 @@ import hashlib
 import requests
 import inspect
 import tempfile
-from datetime import datetime
-
 from zipfile import ZipFile
+from datetime import datetime
 
 from os import environ
 try:
@@ -21,6 +20,7 @@ from pprint import pprint  # noqa: F401
 
 from biokbase.workspace.client import Workspace as workspaceService
 from Workspace.WorkspaceClient import Workspace
+from Workspace.baseclient import ServerError as WorkspaceError
 from DataFileUtil.DataFileUtilClient import DataFileUtil
 from ReadsUtils.ReadsUtilsClient import ReadsUtils
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
@@ -111,6 +111,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
     def getWsName(cls):
         return cls.wsinfo[1]
 
+    @classmethod
     def getImpl(self):
         return self.serviceImpl
 
@@ -265,48 +266,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                          }]
         })[0]
 
-
-    @classmethod
-    def uploadTestData(cls, wsobjname, object_body, test_file):
-
-        ob = dict(object_body)  # copy
-        ob['wsname'] = cls.getWsName()
-
-        print('\n===============staging data for object ' + wsobjname +
-              '================')
-        print('uploading alignment file ' + test_file.get('name'))
-        a_id, a_handle_id, a_md5, a_size = \
-            cls.upload_file_to_shock_and_get_handle(test_file.get('data_file'))
-
-        a_handle = {
-            'hid': a_handle_id,
-            'file_name': test_file.get('name'),
-            'id': a_id,
-            'url': cls.shockURL,
-            'type': 'shock',
-            'remote_md5': a_md5
-        }
-
-        ob['file'] = a_handle
-        ob['size'] = a_size
-        ob['library_type'] = 'paired'
-        ob['condition'] = cls.more_upload_params.get('condition')
-        ob['read_sample_id'] = cls.more_upload_params.get('read_library_ref')
-        ob['genome_id'] = cls.more_upload_params.get('assembly_or_genome_ref')
-
-        print('Saving object data')
-
-        objdata = cls.save_ws_obj(ob, wsobjname, 'KBaseRNASeq.RNASeqAlignment')
-        print('Saved object: ')
-        pprint(objdata)
-        pprint(ob)
-
-        cls.staged[wsobjname] = {'info': objdata,
-                                 'ref': cls.make_ref(objdata),
-                                 'node_id': a_id,
-                                 'handle': a_handle
-                                }
-
     @classmethod
     def setupTestFile(cls, file_name):
 
@@ -325,22 +284,15 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         return ret
 
-
     @classmethod
     def setupTestData(cls):
-
-        ###  set up files for upload and download
 
         cls.test_bam_file = cls.setupTestFile('accepted_hits_sorted.bam')
         cls.test_bai_file = cls.setupTestFile('accepted_hits_sorted.bai')
         cls.test_sam_file = cls.setupTestFile('accepted_hits.sam')
 
-        ###  copy files to scratch directory for upload test functions
-
         shutil.copy(cls.test_bam_file['data_file'], cls.test_bam_file['file_path'])
         shutil.copy(cls.test_sam_file['data_file'], cls.test_sam_file['file_path'])
-
-        ### upload reads, genome and assembly to be used as input parameters to upload_alignment
 
         int_reads = {'file': 'data/interleaved.fq',
                      'name': '',
@@ -352,24 +304,29 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         cls.more_upload_params = {
                                   'read_library_ref': cls.getWsName() + '/intbasic',
-                                  'assembly_or_genome_ref': cls.getWsName() + '/test_aseembly',
+                                  'assembly_or_genome_ref': cls.getWsName() + '/test_assembly',
                                   'condition': 'test_condition'
                                  }
-        ###  upload the alignment file to be used by download test functions
 
-        cls.uploadTestData('test_download_bam', cls.more_upload_params, cls.test_bam_file)
-        cls.uploadTestData('test_download_sam', cls.more_upload_params, cls.test_sam_file)
+        params = dictmerge({'destination_ref': cls.getWsName() + '/test_bam',
+                            'file_path': cls.test_bam_file['file_path'],
+                            'validate': 'True'
+                            }, cls.more_upload_params)
+        cls.getImpl().upload_alignment(cls.ctx, params)
 
+        params = dictmerge({'destination_ref': cls.getWsName() + '/test_sam',
+                            'file_path': cls.test_sam_file['file_path'],
+                            'validate': 'True'
+                            }, cls.more_upload_params)
+        cls.getImpl().upload_alignment(cls.ctx, params)
 
     @classmethod
     def make_ref(cls, objinfo):
         return str(objinfo[6]) + '/' + str(objinfo[0]) + '/' + str(objinfo[4])
 
-
     @classmethod
     def getSize(cls, filename):
         return os.path.getsize(filename)
-
 
     @classmethod
     def md5(cls, filename):
@@ -381,12 +338,9 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                 buf = file_.read(65536)
             return hash_md5.hexdigest()
 
-
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
 
     def upload_alignment_success(self, params, expected):
-
-        ref = self.getImpl().upload_alignment(self.ctx, params)[0]
 
         obj = self.dfu.get_objects(
             {'object_refs': [params.get('destination_ref')]})['data'][0]
@@ -395,7 +349,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         pprint(obj)
         print("==============================================")
 
-        self.assertEqual(ref['obj_ref'], self.make_ref(obj['info']))
         self.assertEqual(obj['info'][2].startswith(
             'KBaseRNASeq.RNASeqAlignment'), True)
         d = obj['data']
@@ -411,28 +364,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         self.assertEqual(f['remote_md5'], expected.get('md5'))
 
         node = f['id']
-        self.delete_shock_node(node)
-
-
-    def test_upload_success_bam(self):
-
-        params = dictmerge({'destination_ref': self.getWsName() + '/test_download_bam',
-                            'file_path': self.test_bam_file['file_path'],
-                            'validate': 'True'
-                            }, self.more_upload_params)
-        expected = self.test_bam_file
-        self.upload_alignment_success(params, expected)
-
-
-    def test_upload_success_sam(self):
-
-        params = dictmerge({'destination_ref': self.getWsName() + '/test_download_sam',
-                            'file_path': self.test_sam_file['file_path'],
-                            'validate': 'True'
-                            }, self.more_upload_params)
-        expected = self.test_bam_file
-        self.upload_alignment_success(params, expected)
-
+        self.nodes_to_delete.append(node)
 
     def check_file(self, file_path, expected):
 
@@ -443,7 +375,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         self.assertEqual(file_name, expected['name'])
         self.assertEqual(size, expected['size'])
         self.assertEqual(md5, expected['md5'])
-
 
     def download_alignment_success(self, obj_name, expectedBAM, expectedSAM, expectedBAI):
 
@@ -463,23 +394,43 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         self.check_file(ret['sam_file'], self.test_sam_file)
         self.check_file(ret['bai_file'], self.test_bai_file)
 
+    def test_upload_success_bam(self):
 
-    def test_download_success(self):
+        params = dictmerge({'destination_ref': self.getWsName() + '/test_bam',
+                            'file_path': self.test_bam_file['file_path'],
+                            'validate': 'True'
+                            }, self.more_upload_params)
+        expected = self.test_bam_file
+        self.upload_alignment_success(params, expected)
 
-        self.download_alignment_success('test_download_bam', self.test_bam_file, self.test_sam_file, self.test_bai_file)
+    def test_upload_success_sam(self):
 
+        params = dictmerge({'destination_ref': self.getWsName() + '/test_sam',
+                            'file_path': self.test_sam_file['file_path'],
+                            'validate': 'True'
+                            }, self.more_upload_params)
+        expected = self.test_bam_file
+        self.upload_alignment_success(params, expected)
 
-    def export_alignment_success(self, staged_name, export_params, expected_num_files, expectedBAM, expectedSAM, expectedBAI):
+    def test_download_success_bam(self):
+
+        self.download_alignment_success('test_bam', self.test_bam_file, self.test_sam_file, self.test_bai_file)
+
+    def test_download_success_sam(self):
+
+        self.download_alignment_success('test_sam', self.test_bam_file, self.test_sam_file, self.test_bai_file)
+
+    def export_alignment_success(self, objname, export_params, expected_num_files, expectedBAM, expectedSAM, expectedBAI):
 
         test_name = inspect.stack()[1][3]
         print('\n*** starting expected export pass test: ' + test_name + ' **')
-        export_params['source_ref'] = self.staged[staged_name]['ref']
+        export_params['source_ref'] = self.getWsName() + '/' + objname
         shocknode = self.getImpl().export_alignment(self.ctx, export_params)[0]['shock_id']
         node_url = self.shockURL + '/node/' + shocknode
         headers = {'Authorization': 'OAuth ' + self.token}
         r = requests.get(node_url, headers=headers, allow_redirects=True)
         fn = r.json()['data']['file']['name']
-        self.assertEquals(fn, staged_name + '.zip')
+        self.assertEquals(fn, objname + '.zip')
         tempdir = tempfile.mkdtemp(dir=self.scratch)
         file_path = os.path.join(tempdir, test_name) + '.zip'
         print('zip file path: ' + file_path)
@@ -516,18 +467,26 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                     self.assertEqual(md5, expectedBAI.get('md5'))
         self.assertEquals(count, expected_num_files)
 
-
-    def test_success_export_alignment(self):
+    def test_success_export_alignment_bam(self):
 
         opt_params = {'exportSAM': 'True',
                       'exportBAI': 'True' }
 
-        self.export_alignment_success('test_download_bam', opt_params, 3,
+        self.export_alignment_success('test_bam', opt_params, 3,
                                       self.test_bam_file,
                                       self.test_sam_file,
                                       self.test_bai_file)
 
+    def test_success_export_alignment_sam(self):
 
+        opt_params = {'exportSAM': 'True',
+                      'exportBAI': 'True' }
+
+        self.export_alignment_success('test_sam', opt_params, 3,
+                                      self.test_bam_file,
+                                      self.test_sam_file,
+                                      self.test_bai_file)
+    
     def test_valid_validate_alignment(self):
         params = {'file_path':'data/samtools/accepted_hits.sam',
                    'ignore':['MATE_NOT_FOUND','MISSING_READ_GROUP',
@@ -543,7 +502,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         self.assertEquals(True, ret['validated'])
 
-
     def test_valid_invalidate_alignment(self):
         params = {'file_path': 'data/samtools/accepted_hits_invalid.sam',
                   'ignore': ['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
@@ -552,7 +510,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         ret = self.getImpl().validate_alignment(self.ctx, params)[0]
 
         self.assertEquals(False, ret['validated'])
-
 
     def fail_upload_alignment(self, params, error, exception=ValueError, do_startswith=False):
 
@@ -584,7 +541,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                         'KBaseAssembly.SingleEndLibrary and KBaseFile.PairedEndLibrary ' +
                         'are supported')
 
-
     def test_upload_fail_no_dst_ref(self):
         self.fail_upload_alignment(
             dictmerge({
@@ -592,7 +548,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                         'file_path': 'test'
                        }, self.more_upload_params),
             'destination_ref parameter is required')
-
 
     def test_upload_fail_no_ws_name(self):
         self.fail_upload_alignment(
@@ -603,7 +558,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                        }, self.more_upload_params),
             'Workspace name or id is required in destination_ref')
 
-
     def test_upload_fail_no_obj_name(self):
         self.fail_upload_alignment(
             dictmerge({
@@ -613,14 +567,12 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                        }, self.more_upload_params),
             'Object name or id is required in destination_ref')
 
-
     def test_upload_fail_no_file(self):
         self.fail_upload_alignment(
             dictmerge({
                          'destination_ref': self.getWsName()+'/foo'
                        }, self.more_upload_params),
             'file_path parameter is required')
-
 
     def test_upload_fail_non_existant_file(self):
         self.fail_upload_alignment(
@@ -630,7 +582,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             }, self.more_upload_params),
             'File does not exist: foo')
 
-
     def test_upload_fail_bad_wsname(self):
         self.fail_upload_alignment(
             dictmerge({
@@ -639,7 +590,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                           }, self.more_upload_params),
             'Illegal character in workspace name &bad: &')
 
-
     def test_upload_fail_non_existant_wsname(self):
         self.fail_upload_alignment(
             dictmerge({
@@ -647,7 +597,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                         'file_path': 'bar'
                       }, self.more_upload_params),
             'No workspace with name 1s exists')
-
 
     # TO DO:  add more tests
 

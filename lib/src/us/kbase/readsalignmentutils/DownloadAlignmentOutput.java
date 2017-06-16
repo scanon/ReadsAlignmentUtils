@@ -39,12 +39,7 @@ public class DownloadAlignmentOutput {
     private String baiFile;
     /**
      * <p>Original spec-file type: AlignmentStats</p>
-     * <pre>
-     * * @optional singletons multiple_alignments, properly_paired,
-     * alignment_rate, unmapped_reads, mapped_sections total_reads,
-     * mapped_reads
-     *     *
-     * </pre>
+     * 
      * 
      */
     @JsonProperty("stats")
@@ -113,12 +108,7 @@ public class DownloadAlignmentOutput {
 
     /**
      * <p>Original spec-file type: AlignmentStats</p>
-     * <pre>
-     * * @optional singletons multiple_alignments, properly_paired,
-     * alignment_rate, unmapped_reads, mapped_sections total_reads,
-     * mapped_reads
-     *     *
-     * </pre>
+     * 
      * 
      */
     @JsonProperty("stats")
@@ -128,12 +118,7 @@ public class DownloadAlignmentOutput {
 
     /**
      * <p>Original spec-file type: AlignmentStats</p>
-     * <pre>
-     * * @optional singletons multiple_alignments, properly_paired,
-     * alignment_rate, unmapped_reads, mapped_sections total_reads,
-     * mapped_reads
-     *     *
-     * </pre>
+     * 
      * 
      */
     @JsonProperty("stats")

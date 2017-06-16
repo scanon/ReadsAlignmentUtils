@@ -16,11 +16,11 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * <p>Original spec-file type: ExportParams</p>
  * <pre>
  * *
- *       Required input parameters for exporting a reads alignment
- *       string source_ref -  object reference of alignment source. The
- *                            object ref is 'ws_name_or_id/obj_name_or_id'
- *                            where ws_name_or_id is the workspace name or id
- *                            and obj_name_or_id is the object name or id
+ * Required input parameters for exporting a reads alignment
+ * string source_ref -  object reference of alignment source. The
+ *                      object ref is 'ws_name_or_id/obj_name_or_id'
+ *                      where ws_name_or_id is the workspace name or id
+ *                      and obj_name_or_id is the object name or id
  *     *
  * </pre>
  * 

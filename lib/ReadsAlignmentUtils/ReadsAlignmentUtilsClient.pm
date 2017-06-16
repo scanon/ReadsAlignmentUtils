@@ -738,7 +738,8 @@ a string
 
 =item Description
 
-* Input parameters for validating a reads alignment *
+* Input parameters for validating a reads alignment. For validation errors to ignore,
+see http://broadinstitute.github.io/picard/command-line-overview.html#ValidateSamFile
 
 
 =item Definition
@@ -811,23 +812,20 @@ validated has a value which is a ReadsAlignmentUtils.boolean
 =item Description
 
 *
+Required input parameters for uploading a reads alignment
 
-      Required input parameters for uploading a reads alignment
+  string destination_ref -  object reference of alignment destination. The
+                            object ref is 'ws_name_or_id/obj_name_or_id'
+                            where ws_name_or_id is the workspace name or id
+                            and obj_name_or_id is the object name or id
 
-        string destination_ref -  object reference of alignment destination. The
-                                  object ref is 'ws_name_or_id/obj_name_or_id'
-                                  where ws_name_or_id is the workspace name or id
-                                  and obj_name_or_id is the object name or id
+  file_path              -  Source: file with the path of the sam or bam file to be uploaded
 
-        file_path              -  Source: file with the path of the sam or bam file to be uploaded
-
-        read_library_ref       -  workspace object ref of the read sample used to make
-                                  the alignment file
-        condition              -
-        assembly_or_genome_ref -  workspace object ref of assembly or genome annotation that was
-                                  used to build the alignment
-
-
+  read_library_ref       -  workspace object ref of the read sample used to make
+                            the alignment file
+  condition              -
+  assembly_or_genome_ref -  workspace object ref of genome assembly or genome object that was
+                            used to build the alignment
     *
 
 
@@ -927,13 +925,12 @@ obj_ref has a value which is a string
 =item Description
 
 *
+Required input parameters for downloading a reads alignment
 
-      Required input parameters for downloading a reads alignment
-
-      string source_ref -  object reference of alignment source. The
-                           object ref is 'ws_name_or_id/obj_name_or_id'
-                           where ws_name_or_id is the workspace name or id
-                           and obj_name_or_id is the object name or id
+string source_ref -  object reference of alignment source. The
+                     object ref is 'ws_name_or_id/obj_name_or_id'
+                     where ws_name_or_id is the workspace name or id
+                     and obj_name_or_id is the object name or id
     *
 
 
@@ -975,14 +972,6 @@ ignore has a value which is a reference to a list where each element is a string
 
 =over 4
 
-
-
-=item Description
-
-* @optional singletons multiple_alignments, properly_paired,
-alignment_rate, unmapped_reads, mapped_sections total_reads,
-mapped_reads
-    *
 
 
 =item Definition
@@ -1073,13 +1062,12 @@ stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 =item Description
 
 *
+Required input parameters for exporting a reads alignment
 
-      Required input parameters for exporting a reads alignment
-
-      string source_ref -  object reference of alignment source. The
-                           object ref is 'ws_name_or_id/obj_name_or_id'
-                           where ws_name_or_id is the workspace name or id
-                           and obj_name_or_id is the object name or id
+string source_ref -  object reference of alignment source. The
+                     object ref is 'ws_name_or_id/obj_name_or_id'
+                     where ws_name_or_id is the workspace name or id
+                     and obj_name_or_id is the object name or id
     *
 
 

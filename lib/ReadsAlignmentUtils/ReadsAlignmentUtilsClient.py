@@ -36,9 +36,11 @@ class ReadsAlignmentUtils(object):
     def validate_alignment(self, params, context=None):
         """
         :param params: instance of type "ValidateAlignmentParams" (* Input
-           parameters for validating a reads alignment *) -> structure:
-           parameter "file_path" of String, parameter "ignore" of list of
-           String
+           parameters for validating a reads alignment. For validation errors
+           to ignore, see
+           http://broadinstitute.github.io/picard/command-line-overview.html#V
+           alidateSamFile) -> structure: parameter "file_path" of String,
+           parameter "ignore" of list of String
         :returns: instance of type "ValidateAlignmentOutput" (* Results from
            validate alignment *) -> structure: parameter "validated" of type
            "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1))
@@ -59,10 +61,10 @@ class ReadsAlignmentUtils(object):
            sam or bam file to be uploaded read_library_ref       -  workspace
            object ref of the read sample used to make the alignment file
            condition              - assembly_or_genome_ref -  workspace
-           object ref of assembly or genome annotation that was used to build
-           the alignment *) -> structure: parameter "destination_ref" of
-           String, parameter "file_path" of String, parameter "condition" of
-           String, parameter "assembly_or_genome_ref" of String, parameter
+           object ref of genome assembly or genome object that was used to
+           build the alignment *) -> structure: parameter "destination_ref"
+           of String, parameter "file_path" of String, parameter "condition"
+           of String, parameter "assembly_or_genome_ref" of String, parameter
            "read_library_ref" of String, parameter "aligned_using" of String,
            parameter "aligner_version" of String, parameter "aligner_opts" of
            mapping from String to String, parameter "replicate_id" of String,
@@ -100,13 +102,11 @@ class ReadsAlignmentUtils(object):
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "bam_file" of String, parameter "sam_file" of
            String, parameter "bai_file" of String, parameter "stats" of type
-           "AlignmentStats" (* @optional singletons multiple_alignments,
-           properly_paired, alignment_rate, unmapped_reads, mapped_sections
-           total_reads, mapped_reads *) -> structure: parameter
-           "properly_paired" of Long, parameter "multiple_alignments" of
-           Long, parameter "singletons" of Long, parameter "alignment_rate"
-           of Double, parameter "unmapped_reads" of Long, parameter
-           "mapped_reads" of Long, parameter "total_reads" of Long
+           "AlignmentStats" -> structure: parameter "properly_paired" of
+           Long, parameter "multiple_alignments" of Long, parameter
+           "singletons" of Long, parameter "alignment_rate" of Double,
+           parameter "unmapped_reads" of Long, parameter "mapped_reads" of
+           Long, parameter "total_reads" of Long
         """
         return self._client.call_method(
             'ReadsAlignmentUtils.download_alignment',
