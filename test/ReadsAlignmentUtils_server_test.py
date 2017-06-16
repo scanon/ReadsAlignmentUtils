@@ -77,10 +77,10 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         print('created workspace ' + cls.getWsName())
 
         cls.serviceImpl = ReadsAlignmentUtils(cls.cfg)
-        cls.readUtilsImpl = ReadsUtils(cls.callbackURL, token=cls.token)
-        cls.dfu = DataFileUtil(cls.callbackURL, token=cls.token)
-        cls.assemblyUtil = AssemblyUtil(cls.callbackURL, token=cls.token)
-        cls.gfu = GenomeFileUtil(cls.callbackURL, token=cls.token)
+        cls.readUtilsImpl = ReadsUtils(cls.callbackURL)
+        cls.dfu = DataFileUtil(cls.callbackURL)
+        cls.assemblyUtil = AssemblyUtil(cls.callbackURL)
+        cls.gfu = GenomeFileUtil(cls.callbackURL)
 
         cls.scratch = cls.cfg['scratch']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
@@ -112,8 +112,8 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         return cls.wsinfo[1]
 
     @classmethod
-    def getImpl(self):
-        return self.serviceImpl
+    def getImpl(cls):
+        return cls.serviceImpl
 
     def getContext(self):
         return self.ctx

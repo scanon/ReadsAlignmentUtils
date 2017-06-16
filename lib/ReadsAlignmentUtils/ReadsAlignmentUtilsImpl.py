@@ -102,7 +102,7 @@ the stored alignment.
         if not bool(obj_name_id.strip()):
             raise ValueError("Object name or id is required in " + self.PARAM_IN_DST_REF)
 
-        dfu = DataFileUtil(self.callback_url, token=ctx['token'], service_ver='dev')
+        dfu = DataFileUtil(self.callback_url)
 
         if not isinstance(ws_name_id, int):
 
@@ -130,7 +130,7 @@ the stored alignment.
     def _get_read_lib_type(self, ctx, read_lib_ref):
 
         ws_info = self._get_ws_info(read_lib_ref)
-        readcli = ReadsUtils(self.callback_url, token=ctx['token'], service_ver='dev')
+        readcli = ReadsUtils(self.callback_url)
         reads_ref = ws_info[7] + '/' + ws_info[1]
 
         typeerr = ('Supported types: KBaseFile.SingleEndLibrary ' +
@@ -314,7 +314,7 @@ the stored alignment.
             bam_file = os.path.join(dir, file_base + '_sorted.bam')
             self.samtools.convert_sam_to_sorted_bam(file_name, dir, bam_file)
 
-        dfu = DataFileUtil(self.callback_url, token=ctx['token'])
+        dfu = DataFileUtil(self.callback_url)
 
         uploaded_file = dfu.file_to_shock({'file_path': bam_file,
                                            'make_handle': 1
@@ -411,7 +411,7 @@ the stored alignment.
 
         obj_ref = str(info[6]) + '/' + str(info[0])
 
-        dfu = DataFileUtil(self.callback_url, token=ctx['token'])
+        dfu = DataFileUtil(self.callback_url)
 
         try:
             alignment = dfu.get_objects({'object_refs': [obj_ref]})['data']
@@ -470,10 +470,6 @@ the stored alignment.
 
         if len(returnVal) == 1:
             raise ValueError('No files were requested to be downloaded')
-
-        print('=======================AAAAAAAAAAAAA ============')
-        pprint(alignment)
-        print('=======================AAAAAAAAAAAAA ============')
 
         returnVal['stats'] = alignment[0]['data']['alignment_stats']
 
