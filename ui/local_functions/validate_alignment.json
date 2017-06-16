@@ -1,0 +1,16 @@
+{
+    "name" : "Validate BAM, SAM",
+    "short_description" : "Validates a BAM or SAM file.",
+    "long_description" : "Validates that a given file is, indeed, a BAM or SAM file.",
+    "tags" : {
+        "categories" : ["validation", "BAM", "SAM"],
+        "input": {
+            "file_types": ["BAM", "SAM"],
+            "kb_types": []
+        },
+        "output": {
+            "file_types": [],
+            "kb_types": []
+        }
+    }
+}

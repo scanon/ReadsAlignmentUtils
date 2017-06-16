@@ -1,0 +1,16 @@
+{
+    "name" : "Exports alignment files.",
+    "short_description" : "Exports an alignment file in BAM, SAM and BAI formats from KBase.",
+    "long_description" : "Exports an alignment file in BAM, SAM and BAI formats from the KBase data stores.",
+    "tags" : {
+        "categories" : ["export", "BAM", "SAM", "BAI"],
+        "input": {
+            "file_types": [],
+            "kb_types": ["KBaseRNASeq.RNASeqAlignment"]
+        },
+        "output": {
+            "file_types": ["BAM", "BAI", "SAM"],
+            "kb_types": []
+        }
+    }
+}

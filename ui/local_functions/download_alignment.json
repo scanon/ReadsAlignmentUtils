@@ -1,0 +1,16 @@
+{
+    "name" : "Download an alignment file.",
+    "short_description" : "Download an alignment file in BAM, SAM and BAI formats from KBase.",
+    "long_description" : "Download an alignment file in BAM, SAM and BAI formats from the KBase data stores.",
+    "tags" : {
+        "categories" : ["download", "BAM", "SAM", "BAI"],
+        "input": {
+            "file_types": [],
+            "kb_types": ["KBaseRNASeq.RNASeqAlignment"]
+        },
+        "output": {
+            "file_types": ["BAM", "BAI", "SAM"],
+            "kb_types": []
+        }
+    }
+}
