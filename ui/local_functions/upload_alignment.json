@@ -1,6 +1,6 @@
 {
-    "name" : "Upload an alignment file in SAM or BAM format.",
-    "short_description" : "Upload an alignment file in BAM or SAM format to KBase.",
+    "name" : "Upload an alignment file",
+    "short_description" : "Uploads an alignment file in BAM or SAM format to KBase.",
     "long_description" : "Uploads an alignment file in BAM or SAM format to the KBase data stores.",
     "tags" : {
         "categories" : ["upload", "BAM", "SAM"],

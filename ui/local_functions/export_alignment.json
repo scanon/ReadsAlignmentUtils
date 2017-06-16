@@ -1,5 +1,5 @@
 {
-    "name" : "Exports alignment files.",
+    "name" : "Export an alignment file",
     "short_description" : "Exports an alignment file in BAM, SAM and BAI formats from KBase.",
     "long_description" : "Exports an alignment file in BAM, SAM and BAI formats from the KBase data stores.",
     "tags" : {

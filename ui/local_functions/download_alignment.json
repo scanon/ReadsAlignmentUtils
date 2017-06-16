@@ -1,7 +1,7 @@
 {
-    "name" : "Download an alignment file.",
-    "short_description" : "Download an alignment file in BAM, SAM and BAI formats from KBase.",
-    "long_description" : "Download an alignment file in BAM, SAM and BAI formats from the KBase data stores.",
+    "name" : "Download an alignment file",
+    "short_description" : "Downloads an alignment file in BAM, SAM and BAI formats from KBase.",
+    "long_description" : "Downloads an alignment file in BAM, SAM and BAI formats from the KBase data stores.",
     "tags" : {
         "categories" : ["download", "BAM", "SAM", "BAI"],
         "input": {
