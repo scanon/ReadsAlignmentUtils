@@ -78,8 +78,8 @@ module ReadsAlignmentUtils {
 
         boolean validate;    /* Optional. Set to true if input needs to be validated. Default: False */
         list<string> ignore; /* Optional. List of validation errors to ignore.
-                                Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
-                                        'INVALID_MAPPING_QUALITY']   */
+                                 Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
+                                           'INVALID_MAPPING_QUALITY']   */
    }  UploadAlignmentParams;
 
    /**  Output from uploading a reads alignment  **/
@@ -114,8 +114,8 @@ module ReadsAlignmentUtils {
         boolean validate;      /* Optional - default is false
                                    Set to true if input needs to be validated  */
         list<string> ignore;   /* Optional. List of validation errors to ignore.
-                                    Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
-                                                'INVALID_MAPPING_QUALITY']  */
+                                   Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
+                                             'INVALID_MAPPING_QUALITY']  */
      } DownloadAlignmentParams;
 
      typedef structure {
@@ -161,8 +161,8 @@ module ReadsAlignmentUtils {
          boolean validate;    /* Optional - default is false
                                    Set to true if input needs to be validated  */
          list<string> ignore; /* Optional. List of validation errors to ignore.
-                                    Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
-                                                'INVALID_MAPPING_QUALITY']   */
+                                   Default: ['MATE_NOT_FOUND','MISSING_READ_GROUP',
+                                             'INVALID_MAPPING_QUALITY']   */
      } ExportParams;
 
      typedef structure {

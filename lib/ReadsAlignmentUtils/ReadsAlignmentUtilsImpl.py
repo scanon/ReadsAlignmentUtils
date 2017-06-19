@@ -20,7 +20,6 @@ from ReadsUtils.baseclient import ServerError
 from ReadsAlignmentUtils.core.sam_tools import SamTools
 from Workspace.WorkspaceClient import Workspace
 from Workspace.baseclient import ServerError as WorkspaceError
-
 #END_HEADER
 
 
@@ -81,10 +80,10 @@ the stored alignment.
         return dir, file_name, file_base, file_ext
 
     def _check_required_param(self, in_params, param_list):
-       """
-       Checks if each of the params in the list are in the input params
-       """
-       for param in param_list:
+        """
+        Checks if each of the params in the list are in the input params
+        """
+        for param in param_list:
             if (param not in in_params or not in_params[param]):
                 raise ValueError(param + ' parameter is required')
 
@@ -177,9 +176,9 @@ the stored alignment.
         lib_type = self._get_read_lib_type(ctx, params.get(self.PARAM_IN_READ_LIB_REF))
 
         obj_type = self._get_ws_info(params.get(self.PARAM_IN_ASM_GEN_REF))[2]
-        if  obj_type.startswith('KBaseGenomes.Genome') or \
-            obj_type.startswith('KBaseGenomeAnnotations.Assembly') or \
-            obj_type.startswith('KBaseGenomes.ContigSet'):
+        if obj_type.startswith('KBaseGenomes.Genome') or \
+           obj_type.startswith('KBaseGenomeAnnotations.Assembly') or \
+           obj_type.startswith('KBaseGenomes.ContigSet'):
             pass
         else:
             raise ValueError(self.PARAM_IN_ASM_GEN_REF + ' parameter should be of type' +
@@ -213,11 +212,12 @@ the stored alignment.
         self.config = config
         self.__LOGGER = logging.getLogger('KBaseRNASeq')
         if 'log_level' in config:
-              self.__LOGGER.setLevel(config['log_level'])
+            self.__LOGGER.setLevel(config['log_level'])
         else:
-              self.__LOGGER.setLevel(logging.INFO)
+            self.__LOGGER.setLevel(logging.INFO)
         streamHandler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter("%(asctime)s - %(filename)s - %(lineno)d - %(levelname)s - %(message)s")
+        formatter = logging.Formatter("%(asctime)s - %(filename)s - %(lineno)d - \
+                                       %(levelname)s - %(message)s")
         formatter.converter = time.gmtime
         streamHandler.setFormatter(formatter)
         self.__LOGGER.addHandler(streamHandler)
@@ -231,7 +231,6 @@ the stored alignment.
         self.samtools = SamTools(config)
         #END_CONSTRUCTOR
         pass
-
 
     def validate_alignment(self, ctx, params):
         """
@@ -252,9 +251,9 @@ the stored alignment.
         rval = self._validate(params)
 
         if rval == 0:
-            returnVal = {'validated': True }
+            returnVal = {'validated': True}
         else:
-            returnVal = {'validated': False }
+            returnVal = {'validated': False}
 
         #END validate_alignment
 
@@ -318,41 +317,38 @@ the stored alignment.
 
         uploaded_file = dfu.file_to_shock({'file_path': bam_file,
                                            'make_handle': 1
-                                          })
+                                           })
         file_handle = uploaded_file['handle']
         file_size = uploaded_file['size']
 
         aligner_stats = self._get_aligner_stats(file_path)
-        aligner_data = {
-                         'file': file_handle,
-                         'size': file_size,
-                         'condition': params.get(self.PARAM_IN_CONDITION),
-                         'read_sample_id': params.get(self.PARAM_IN_READ_LIB_REF),
-                         'library_type': lib_type,
-                         'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF),
-                         'alignment_stats': aligner_stats
+        aligner_data = {'file': file_handle,
+                        'size': file_size,
+                        'condition': params.get(self.PARAM_IN_CONDITION),
+                        'read_sample_id': params.get(self.PARAM_IN_READ_LIB_REF),
+                        'library_type': lib_type,
+                        'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF),
+                        'alignment_stats': aligner_stats
                         }
 
-        optional_params = [ self.PARAM_IN_ALIGNED_USING,
-                            self.PARAM_IN_ALIGNER_VER,
-                            self.PARAM_IN_ALIGNER_OPTS,
-                            self.PARAM_IN_REPLICATE_ID,
-                            self.PARAM_IN_PLATFORM,
-                            self.PARAM_IN_BOWTIE2_INDEX,
-                            self.PARAM_IN_SAMPLESET_REF,
-                            self.PARAM_IN_MAPPED_SAMPLE_ID
-                          ]
+        optional_params = [self.PARAM_IN_ALIGNED_USING,
+                           self.PARAM_IN_ALIGNER_VER,
+                           self.PARAM_IN_ALIGNER_OPTS,
+                           self.PARAM_IN_REPLICATE_ID,
+                           self.PARAM_IN_PLATFORM,
+                           self.PARAM_IN_BOWTIE2_INDEX,
+                           self.PARAM_IN_SAMPLESET_REF,
+                           self.PARAM_IN_MAPPED_SAMPLE_ID
+                           ]
         for opt_param in optional_params:
             if opt_param in params and params[opt_param] is not None:
                 aligner_data[opt_param] = params[opt_param]
 
-        res = dfu.save_objects(
-                {"id": ws_name_id,
-                 "objects": [{
-                     "type": "KBaseRNASeq.RNASeqAlignment",
-                     "data": aligner_data,
-                     "name": obj_name_id}
-                 ]})[0]
+        res = dfu.save_objects({"id": ws_name_id,
+                                "objects": [{"type": "KBaseRNASeq.RNASeqAlignment",
+                                             "data": aligner_data,
+                                             "name": obj_name_id}
+                                            ]})[0]
 
         self.log('save complete')
 
@@ -424,10 +420,9 @@ the stored alignment.
         output_dir = os.path.join(self.scratch, 'download_' + str(timestamp))
         os.mkdir(output_dir)
 
-        file_ret = dfu.shock_to_file({
-                                    'shock_id': alignment[0]['data']['file']['id'],
-                                    'file_path': output_dir
-                                    })
+        file_ret = dfu.shock_to_file({'shock_id': alignment[0]['data']['file']['id'],
+                                      'file_path': output_dir
+                                      })
 
         bam_file = alignment[0]['data']['file']['file_name']
 
@@ -546,6 +541,7 @@ the stored alignment.
                              'output is not type dict as required.')
         # return the results
         return [output]
+
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
