@@ -9,7 +9,7 @@ from ReadsAlignmentUtils.core import script_utils
 from os import environ
 try:
     from ConfigParser import ConfigParser  # py2
-except:
+except BaseException:
     from configparser import ConfigParser  # py3
 
 from pprint import pprint  # noqa: F401
@@ -18,7 +18,6 @@ from biokbase.workspace.client import Workspace as workspaceService
 from ReadsAlignmentUtils.ReadsAlignmentUtilsImpl import ReadsAlignmentUtils
 from ReadsAlignmentUtils.ReadsAlignmentUtilsServer import MethodContext
 from ReadsAlignmentUtils.authclient import KBaseAuth as _KBaseAuth
-
 
 
 class ScriptUtilsTest(unittest.TestCase):
@@ -69,7 +68,5 @@ class ScriptUtilsTest(unittest.TestCase):
 
     def test_whereis(self):
         self.assertIsNone(script_utils.whereis('no_such_program'),
-                         'wat! there is a commandline program called no_such_program!')
+                          'wat! there is a commandline program called no_such_program!')
         self.assertEquals(script_utils.whereis('ls'), '/bin/ls', 'ls program not found in path!')
-
-
