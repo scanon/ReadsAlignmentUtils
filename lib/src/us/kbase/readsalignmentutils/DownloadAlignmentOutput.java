@@ -22,21 +22,15 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Generated("com.googlecode.jsonschema2pojo")
 @JsonPropertyOrder({
     "ws_id",
-    "bam_file",
-    "sam_file",
-    "bai_file",
+    "destination_dir",
     "stats"
 })
 public class DownloadAlignmentOutput {
 
     @JsonProperty("ws_id")
     private String wsId;
-    @JsonProperty("bam_file")
-    private String bamFile;
-    @JsonProperty("sam_file")
-    private String samFile;
-    @JsonProperty("bai_file")
-    private String baiFile;
+    @JsonProperty("destination_dir")
+    private String destinationDir;
     /**
      * <p>Original spec-file type: AlignmentStats</p>
      * 
@@ -61,48 +55,18 @@ public class DownloadAlignmentOutput {
         return this;
     }
 
-    @JsonProperty("bam_file")
-    public String getBamFile() {
-        return bamFile;
+    @JsonProperty("destination_dir")
+    public String getDestinationDir() {
+        return destinationDir;
     }
 
-    @JsonProperty("bam_file")
-    public void setBamFile(String bamFile) {
-        this.bamFile = bamFile;
+    @JsonProperty("destination_dir")
+    public void setDestinationDir(String destinationDir) {
+        this.destinationDir = destinationDir;
     }
 
-    public DownloadAlignmentOutput withBamFile(String bamFile) {
-        this.bamFile = bamFile;
-        return this;
-    }
-
-    @JsonProperty("sam_file")
-    public String getSamFile() {
-        return samFile;
-    }
-
-    @JsonProperty("sam_file")
-    public void setSamFile(String samFile) {
-        this.samFile = samFile;
-    }
-
-    public DownloadAlignmentOutput withSamFile(String samFile) {
-        this.samFile = samFile;
-        return this;
-    }
-
-    @JsonProperty("bai_file")
-    public String getBaiFile() {
-        return baiFile;
-    }
-
-    @JsonProperty("bai_file")
-    public void setBaiFile(String baiFile) {
-        this.baiFile = baiFile;
-    }
-
-    public DownloadAlignmentOutput withBaiFile(String baiFile) {
-        this.baiFile = baiFile;
+    public DownloadAlignmentOutput withDestinationDir(String destinationDir) {
+        this.destinationDir = destinationDir;
         return this;
     }
 
@@ -143,7 +107,7 @@ public class DownloadAlignmentOutput {
 
     @Override
     public String toString() {
-        return ((((((((((((("DownloadAlignmentOutput"+" [wsId=")+ wsId)+", bamFile=")+ bamFile)+", samFile=")+ samFile)+", baiFile=")+ baiFile)+", stats=")+ stats)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((("DownloadAlignmentOutput"+" [wsId=")+ wsId)+", destinationDir=")+ destinationDir)+", stats=")+ stats)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

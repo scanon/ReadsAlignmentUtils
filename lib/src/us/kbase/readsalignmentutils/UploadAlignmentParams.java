@@ -21,7 +21,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *                             object ref is 'ws_name_or_id/obj_name_or_id'
  *                             where ws_name_or_id is the workspace name or id
  *                             and obj_name_or_id is the object name or id
- *   file_path              -  Source: file with the path of the sam or bam file to be uploaded
+ *   file_path              -  File with the path of the sam or bam file to be uploaded.
+ *                             If a sam file is provided, it will be converted to the sorted
+ *                             bam format before being saved
  *   read_library_ref       -  workspace object ref of the read sample used to make
  *                             the alignment file
  *   condition              -
@@ -36,9 +38,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "destination_ref",
     "file_path",
+    "read_library_ref",
     "condition",
     "assembly_or_genome_ref",
-    "read_library_ref",
     "aligned_using",
     "aligner_version",
     "aligner_opts",
@@ -56,12 +58,12 @@ public class UploadAlignmentParams {
     private java.lang.String destinationRef;
     @JsonProperty("file_path")
     private java.lang.String filePath;
+    @JsonProperty("read_library_ref")
+    private java.lang.String readLibraryRef;
     @JsonProperty("condition")
     private java.lang.String condition;
     @JsonProperty("assembly_or_genome_ref")
     private java.lang.String assemblyOrGenomeRef;
-    @JsonProperty("read_library_ref")
-    private java.lang.String readLibraryRef;
     @JsonProperty("aligned_using")
     private java.lang.String alignedUsing;
     @JsonProperty("aligner_version")
@@ -114,6 +116,21 @@ public class UploadAlignmentParams {
         return this;
     }
 
+    @JsonProperty("read_library_ref")
+    public java.lang.String getReadLibraryRef() {
+        return readLibraryRef;
+    }
+
+    @JsonProperty("read_library_ref")
+    public void setReadLibraryRef(java.lang.String readLibraryRef) {
+        this.readLibraryRef = readLibraryRef;
+    }
+
+    public UploadAlignmentParams withReadLibraryRef(java.lang.String readLibraryRef) {
+        this.readLibraryRef = readLibraryRef;
+        return this;
+    }
+
     @JsonProperty("condition")
     public java.lang.String getCondition() {
         return condition;
@@ -141,21 +158,6 @@ public class UploadAlignmentParams {
 
     public UploadAlignmentParams withAssemblyOrGenomeRef(java.lang.String assemblyOrGenomeRef) {
         this.assemblyOrGenomeRef = assemblyOrGenomeRef;
-        return this;
-    }
-
-    @JsonProperty("read_library_ref")
-    public java.lang.String getReadLibraryRef() {
-        return readLibraryRef;
-    }
-
-    @JsonProperty("read_library_ref")
-    public void setReadLibraryRef(java.lang.String readLibraryRef) {
-        this.readLibraryRef = readLibraryRef;
-    }
-
-    public UploadAlignmentParams withReadLibraryRef(java.lang.String readLibraryRef) {
-        this.readLibraryRef = readLibraryRef;
         return this;
     }
 
@@ -321,7 +323,7 @@ public class UploadAlignmentParams {
 
     @Override
     public java.lang.String toString() {
-        return ((((((((((((((((((((((((((((((((("UploadAlignmentParams"+" [destinationRef=")+ destinationRef)+", filePath=")+ filePath)+", condition=")+ condition)+", assemblyOrGenomeRef=")+ assemblyOrGenomeRef)+", readLibraryRef=")+ readLibraryRef)+", alignedUsing=")+ alignedUsing)+", alignerVersion=")+ alignerVersion)+", alignerOpts=")+ alignerOpts)+", replicateId=")+ replicateId)+", platform=")+ platform)+", bowtie2Index=")+ bowtie2Index)+", samplesetRef=")+ samplesetRef)+", mappedSampleId=")+ mappedSampleId)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((((((((((((((((((("UploadAlignmentParams"+" [destinationRef=")+ destinationRef)+", filePath=")+ filePath)+", readLibraryRef=")+ readLibraryRef)+", condition=")+ condition)+", assemblyOrGenomeRef=")+ assemblyOrGenomeRef)+", alignedUsing=")+ alignedUsing)+", alignerVersion=")+ alignerVersion)+", alignerOpts=")+ alignerOpts)+", replicateId=")+ replicateId)+", platform=")+ platform)+", bowtie2Index=")+ bowtie2Index)+", samplesetRef=")+ samplesetRef)+", mappedSampleId=")+ mappedSampleId)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

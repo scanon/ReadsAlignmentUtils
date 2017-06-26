@@ -29,9 +29,10 @@ ReadsAlignmentUtils::ReadsAlignmentUtilsClient
 A KBase module: ReadsAlignmentUtils
 
 This module is intended for use by Aligners and Assemblers to upload and download alignment files.
-The alignment may be uploaded as .sam or .bam files. Once uploaded, the alignment can be
-downloaded in .sam, sorted .bam or .bai file formats. This utility also generates stats from
-the stored alignment.
+The alignment may be uploaded as a sam or bam file. If a sam file is given, it is converted to
+the sorted bam format and saved. Upon downloading, optional parameters may be provided to get files
+in sam and bai formats from the downloaded bam file. This utility also generates stats from the
+stored alignment.
 
 
 =cut
@@ -223,9 +224,9 @@ $return is a ReadsAlignmentUtils.UploadAlignmentOutput
 UploadAlignmentParams is a reference to a hash where the following keys are defined:
 	destination_ref has a value which is a string
 	file_path has a value which is a string
+	read_library_ref has a value which is a string
 	condition has a value which is a string
 	assembly_or_genome_ref has a value which is a string
-	read_library_ref has a value which is a string
 	aligned_using has a value which is a string
 	aligner_version has a value which is a string
 	aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
@@ -253,9 +254,9 @@ $return is a ReadsAlignmentUtils.UploadAlignmentOutput
 UploadAlignmentParams is a reference to a hash where the following keys are defined:
 	destination_ref has a value which is a string
 	file_path has a value which is a string
+	read_library_ref has a value which is a string
 	condition has a value which is a string
 	assembly_or_genome_ref has a value which is a string
-	read_library_ref has a value which is a string
 	aligned_using has a value which is a string
 	aligner_version has a value which is a string
 	aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
@@ -346,7 +347,6 @@ $params is a ReadsAlignmentUtils.DownloadAlignmentParams
 $return is a ReadsAlignmentUtils.DownloadAlignmentOutput
 DownloadAlignmentParams is a reference to a hash where the following keys are defined:
 	source_ref has a value which is a string
-	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
 	validate has a value which is a ReadsAlignmentUtils.boolean
@@ -354,9 +354,7 @@ DownloadAlignmentParams is a reference to a hash where the following keys are de
 boolean is an int
 DownloadAlignmentOutput is a reference to a hash where the following keys are defined:
 	ws_id has a value which is a string
-	bam_file has a value which is a string
-	sam_file has a value which is a string
-	bai_file has a value which is a string
+	destination_dir has a value which is a string
 	stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 AlignmentStats is a reference to a hash where the following keys are defined:
 	properly_paired has a value which is an int
@@ -377,7 +375,6 @@ $params is a ReadsAlignmentUtils.DownloadAlignmentParams
 $return is a ReadsAlignmentUtils.DownloadAlignmentOutput
 DownloadAlignmentParams is a reference to a hash where the following keys are defined:
 	source_ref has a value which is a string
-	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
 	validate has a value which is a ReadsAlignmentUtils.boolean
@@ -385,9 +382,7 @@ DownloadAlignmentParams is a reference to a hash where the following keys are de
 boolean is an int
 DownloadAlignmentOutput is a reference to a hash where the following keys are defined:
 	ws_id has a value which is a string
-	bam_file has a value which is a string
-	sam_file has a value which is a string
-	bai_file has a value which is a string
+	destination_dir has a value which is a string
 	stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 AlignmentStats is a reference to a hash where the following keys are defined:
 	properly_paired has a value which is an int
@@ -472,7 +467,6 @@ $params is a ReadsAlignmentUtils.ExportParams
 $output is a ReadsAlignmentUtils.ExportOutput
 ExportParams is a reference to a hash where the following keys are defined:
 	source_ref has a value which is a string
-	exportBAM has a value which is a ReadsAlignmentUtils.boolean
 	exportSAM has a value which is a ReadsAlignmentUtils.boolean
 	exportBAI has a value which is a ReadsAlignmentUtils.boolean
 	validate has a value which is a ReadsAlignmentUtils.boolean
@@ -491,7 +485,6 @@ $params is a ReadsAlignmentUtils.ExportParams
 $output is a ReadsAlignmentUtils.ExportOutput
 ExportParams is a reference to a hash where the following keys are defined:
 	source_ref has a value which is a string
-	exportBAM has a value which is a ReadsAlignmentUtils.boolean
 	exportSAM has a value which is a ReadsAlignmentUtils.boolean
 	exportBAI has a value which is a ReadsAlignmentUtils.boolean
 	validate has a value which is a ReadsAlignmentUtils.boolean
@@ -819,7 +812,9 @@ Required input parameters for uploading a reads alignment
                             where ws_name_or_id is the workspace name or id
                             and obj_name_or_id is the object name or id
 
-  file_path              -  Source: file with the path of the sam or bam file to be uploaded
+  file_path              -  File with the path of the sam or bam file to be uploaded.
+                            If a sam file is provided, it will be converted to the sorted
+                            bam format before being saved
 
   read_library_ref       -  workspace object ref of the read sample used to make
                             the alignment file
@@ -837,9 +832,9 @@ Required input parameters for uploading a reads alignment
 a reference to a hash where the following keys are defined:
 destination_ref has a value which is a string
 file_path has a value which is a string
+read_library_ref has a value which is a string
 condition has a value which is a string
 assembly_or_genome_ref has a value which is a string
-read_library_ref has a value which is a string
 aligned_using has a value which is a string
 aligner_version has a value which is a string
 aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
@@ -860,9 +855,9 @@ ignore has a value which is a reference to a list where each element is a string
 a reference to a hash where the following keys are defined:
 destination_ref has a value which is a string
 file_path has a value which is a string
+read_library_ref has a value which is a string
 condition has a value which is a string
 assembly_or_genome_ref has a value which is a string
-read_library_ref has a value which is a string
 aligned_using has a value which is a string
 aligner_version has a value which is a string
 aligner_opts has a value which is a reference to a hash where the key is a string and the value is a string
@@ -941,7 +936,6 @@ string source_ref -  object reference of alignment source. The
 <pre>
 a reference to a hash where the following keys are defined:
 source_ref has a value which is a string
-downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
 validate has a value which is a ReadsAlignmentUtils.boolean
@@ -955,7 +949,6 @@ ignore has a value which is a reference to a list where each element is a string
 
 a reference to a hash where the following keys are defined:
 source_ref has a value which is a string
-downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
 validate has a value which is a ReadsAlignmentUtils.boolean
@@ -1028,9 +1021,7 @@ total_reads has a value which is an int
 <pre>
 a reference to a hash where the following keys are defined:
 ws_id has a value which is a string
-bam_file has a value which is a string
-sam_file has a value which is a string
-bai_file has a value which is a string
+destination_dir has a value which is a string
 stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 
 </pre>
@@ -1041,9 +1032,7 @@ stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 
 a reference to a hash where the following keys are defined:
 ws_id has a value which is a string
-bam_file has a value which is a string
-sam_file has a value which is a string
-bai_file has a value which is a string
+destination_dir has a value which is a string
 stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 
 
@@ -1078,7 +1067,6 @@ string source_ref -  object reference of alignment source. The
 <pre>
 a reference to a hash where the following keys are defined:
 source_ref has a value which is a string
-exportBAM has a value which is a ReadsAlignmentUtils.boolean
 exportSAM has a value which is a ReadsAlignmentUtils.boolean
 exportBAI has a value which is a ReadsAlignmentUtils.boolean
 validate has a value which is a ReadsAlignmentUtils.boolean
@@ -1092,7 +1080,6 @@ ignore has a value which is a reference to a list where each element is a string
 
 a reference to a hash where the following keys are defined:
 source_ref has a value which is a string
-exportBAM has a value which is a ReadsAlignmentUtils.boolean
 exportSAM has a value which is a ReadsAlignmentUtils.boolean
 exportBAI has a value which is a ReadsAlignmentUtils.boolean
 validate has a value which is a ReadsAlignmentUtils.boolean

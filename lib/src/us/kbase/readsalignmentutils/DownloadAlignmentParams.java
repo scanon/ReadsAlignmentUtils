@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Generated("com.googlecode.jsonschema2pojo")
 @JsonPropertyOrder({
     "source_ref",
-    "downloadBAM",
     "downloadSAM",
     "downloadBAI",
     "validate",
@@ -39,8 +38,6 @@ public class DownloadAlignmentParams {
 
     @JsonProperty("source_ref")
     private java.lang.String sourceRef;
-    @JsonProperty("downloadBAM")
-    private Long downloadBAM;
     @JsonProperty("downloadSAM")
     private Long downloadSAM;
     @JsonProperty("downloadBAI")
@@ -63,21 +60,6 @@ public class DownloadAlignmentParams {
 
     public DownloadAlignmentParams withSourceRef(java.lang.String sourceRef) {
         this.sourceRef = sourceRef;
-        return this;
-    }
-
-    @JsonProperty("downloadBAM")
-    public Long getDownloadBAM() {
-        return downloadBAM;
-    }
-
-    @JsonProperty("downloadBAM")
-    public void setDownloadBAM(Long downloadBAM) {
-        this.downloadBAM = downloadBAM;
-    }
-
-    public DownloadAlignmentParams withDownloadBAM(Long downloadBAM) {
-        this.downloadBAM = downloadBAM;
         return this;
     }
 
@@ -153,7 +135,7 @@ public class DownloadAlignmentParams {
 
     @Override
     public java.lang.String toString() {
-        return ((((((((((((((("DownloadAlignmentParams"+" [sourceRef=")+ sourceRef)+", downloadBAM=")+ downloadBAM)+", downloadSAM=")+ downloadSAM)+", downloadBAI=")+ downloadBAI)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((("DownloadAlignmentParams"+" [sourceRef=")+ sourceRef)+", downloadSAM=")+ downloadSAM)+", downloadBAI=")+ downloadBAI)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Generated("com.googlecode.jsonschema2pojo")
 @JsonPropertyOrder({
     "source_ref",
-    "exportBAM",
     "exportSAM",
     "exportBAI",
     "validate",
@@ -39,8 +38,6 @@ public class ExportParams {
 
     @JsonProperty("source_ref")
     private java.lang.String sourceRef;
-    @JsonProperty("exportBAM")
-    private Long exportBAM;
     @JsonProperty("exportSAM")
     private Long exportSAM;
     @JsonProperty("exportBAI")
@@ -63,21 +60,6 @@ public class ExportParams {
 
     public ExportParams withSourceRef(java.lang.String sourceRef) {
         this.sourceRef = sourceRef;
-        return this;
-    }
-
-    @JsonProperty("exportBAM")
-    public Long getExportBAM() {
-        return exportBAM;
-    }
-
-    @JsonProperty("exportBAM")
-    public void setExportBAM(Long exportBAM) {
-        this.exportBAM = exportBAM;
-    }
-
-    public ExportParams withExportBAM(Long exportBAM) {
-        this.exportBAM = exportBAM;
         return this;
     }
 
@@ -153,7 +135,7 @@ public class ExportParams {
 
     @Override
     public java.lang.String toString() {
-        return ((((((((((((((("ExportParams"+" [sourceRef=")+ sourceRef)+", exportBAM=")+ exportBAM)+", exportSAM=")+ exportSAM)+", exportBAI=")+ exportBAI)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((("ExportParams"+" [sourceRef=")+ sourceRef)+", exportSAM=")+ exportSAM)+", exportBAI=")+ exportBAI)+", validate=")+ validate)+", ignore=")+ ignore)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

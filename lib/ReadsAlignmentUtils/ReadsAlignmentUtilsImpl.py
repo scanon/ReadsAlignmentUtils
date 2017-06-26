@@ -6,7 +6,9 @@ import re
 import time
 import shutil
 import logging
-import tempfile
+#from zipfile import ZipFile
+import zipfile
+import glob
 from datetime import datetime
 
 from pprint import pprint
@@ -32,9 +34,10 @@ class ReadsAlignmentUtils:
     A KBase module: ReadsAlignmentUtils
 
 This module is intended for use by Aligners and Assemblers to upload and download alignment files.
-The alignment may be uploaded as .sam or .bam files. Once uploaded, the alignment can be
-downloaded in .sam, sorted .bam or .bai file formats. This utility also generates stats from
-the stored alignment.
+The alignment may be uploaded as a sam or bam file. If a sam file is given, it is converted to
+the sorted bam format and saved. Upon downloading, optional parameters may be provided to get files
+in sam and bai formats from the downloaded bam file. This utility also generates stats from the
+stored alignment.
     '''
 
     ######## WARNING FOR GEVENT USERS ####### noqa
@@ -45,7 +48,7 @@ the stored alignment.
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "0efba19ac937a63023857b949d3fecc810cee999"
+    GIT_COMMIT_HASH = "02675481b10187fcc4b6352ae6e3298aeae39176"
 
     #BEGIN_CLASS_HEADER
 
@@ -64,6 +67,10 @@ the stored alignment.
     PARAM_IN_BOWTIE2_INDEX = 'bowtie2_index'
     PARAM_IN_SAMPLESET_REF = 'sampleset_ref'
     PARAM_IN_MAPPED_SAMPLE_ID = 'mapped_sample_id'
+
+    PARAM_IN_DOWNLOAD_SAM = 'downloadSAM'
+    PARAM_IN_DOWNLOAD_BAI = 'downloadBAI'
+    PARAM_IN_VALIDATE = 'validate'
 
     INVALID_WS_OBJ_NAME_RE = re.compile('[^\\w\\|._-]')
     INVALID_WS_NAME_RE = re.compile('[^\\w:._-]')
@@ -85,7 +92,7 @@ the stored alignment.
         """
         for param in param_list:
             if (param not in in_params or not in_params[param]):
-                raise ValueError(param + ' parameter is required')
+                raise ValueError('{} parameter is required'.format(param))
 
     def _proc_ws_obj_params(self, ctx, params):
         """
@@ -101,12 +108,10 @@ the stored alignment.
         if not bool(obj_name_id.strip()):
             raise ValueError("Object name or id is required in " + self.PARAM_IN_DST_REF)
 
-        dfu = DataFileUtil(self.callback_url)
-
         if not isinstance(ws_name_id, int):
 
             try:
-                ws_name_id = dfu.ws_name_to_id(ws_name_id)
+                ws_name_id = self.dfu.ws_name_to_id(ws_name_id)
             except DFUError as se:
                 prefix = se.message.split('.')[0]
                 raise ValueError(prefix)
@@ -228,9 +233,11 @@ the stored alignment.
         self.scratch = config['scratch']
         self.callback_url = os.environ['SDK_CALLBACK_URL']
         self.ws_url = config['workspace-url']
+        self.dfu = DataFileUtil(self.callback_url)
         self.samtools = SamTools(config)
         #END_CONSTRUCTOR
         pass
+
 
     def validate_alignment(self, ctx, params):
         """
@@ -272,23 +279,26 @@ the stored alignment.
            destination_ref -  object reference of alignment destination. The
            object ref is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id
            is the workspace name or id and obj_name_or_id is the object name
-           or id file_path              -  Source: file with the path of the
-           sam or bam file to be uploaded read_library_ref       -  workspace
-           object ref of the read sample used to make the alignment file
-           condition              - assembly_or_genome_ref -  workspace
-           object ref of genome assembly or genome object that was used to
-           build the alignment *) -> structure: parameter "destination_ref"
-           of String, parameter "file_path" of String, parameter "condition"
-           of String, parameter "assembly_or_genome_ref" of String, parameter
-           "read_library_ref" of String, parameter "aligned_using" of String,
-           parameter "aligner_version" of String, parameter "aligner_opts" of
-           mapping from String to String, parameter "replicate_id" of String,
-           parameter "platform" of String, parameter "bowtie2_index" of type
-           "ws_bowtieIndex_id", parameter "sampleset_ref" of type
-           "ws_Sampleset_ref", parameter "mapped_sample_id" of mapping from
-           String to mapping from String to String, parameter "validate" of
-           type "boolean" (A boolean - 0 for false, 1 for true. @range (0,
-           1)), parameter "ignore" of list of String
+           or id file_path              -  File with the path of the sam or
+           bam file to be uploaded. If a sam file is provided, it will be
+           converted to the sorted bam format before being saved
+           read_library_ref       -  workspace object ref of the read sample
+           used to make the alignment file condition              -
+           assembly_or_genome_ref -  workspace object ref of genome assembly
+           or genome object that was used to build the alignment *) ->
+           structure: parameter "destination_ref" of String, parameter
+           "file_path" of String, parameter "read_library_ref" of String,
+           parameter "condition" of String, parameter
+           "assembly_or_genome_ref" of String, parameter "aligned_using" of
+           String, parameter "aligner_version" of String, parameter
+           "aligner_opts" of mapping from String to String, parameter
+           "replicate_id" of String, parameter "platform" of String,
+           parameter "bowtie2_index" of type "ws_bowtieIndex_id", parameter
+           "sampleset_ref" of type "ws_Sampleset_ref", parameter
+           "mapped_sample_id" of mapping from String to mapping from String
+           to String, parameter "validate" of type "boolean" (A boolean - 0
+           for false, 1 for true. @range (0, 1)), parameter "ignore" of list
+           of String
         :returns: instance of type "UploadAlignmentOutput" (*  Output from
            uploading a reads alignment  *) -> structure: parameter "obj_ref"
            of String
@@ -304,20 +314,18 @@ the stored alignment.
 
         dir, file_name, file_base, file_ext = self._get_file_path_info(file_path)
 
-        if 'validate' in params and params['validate'] is True:
+        if self.PARAM_IN_VALIDATE in params and params[self.PARAM_IN_VALIDATE] is True:
             if self._validate(params) == 1:
                 raise Exception('{0} failed validation'.format(file_path))
 
         bam_file = file_path
         if file_ext.lower() == '.sam':
-            bam_file = os.path.join(dir, file_base + '_sorted.bam')
+            bam_file = os.path.join(dir, file_base + '.bam')
             self.samtools.convert_sam_to_sorted_bam(file_name, dir, bam_file)
 
-        dfu = DataFileUtil(self.callback_url)
-
-        uploaded_file = dfu.file_to_shock({'file_path': bam_file,
-                                           'make_handle': 1
-                                           })
+        uploaded_file = self.dfu.file_to_shock({'file_path': bam_file,
+                                                'make_handle': 1
+                                                })
         file_handle = uploaded_file['handle']
         file_size = uploaded_file['size']
 
@@ -330,7 +338,6 @@ the stored alignment.
                         'genome_id': params.get(self.PARAM_IN_ASM_GEN_REF),
                         'alignment_stats': aligner_stats
                         }
-
         optional_params = [self.PARAM_IN_ALIGNED_USING,
                            self.PARAM_IN_ALIGNER_VER,
                            self.PARAM_IN_ALIGNER_OPTS,
@@ -344,12 +351,11 @@ the stored alignment.
             if opt_param in params and params[opt_param] is not None:
                 aligner_data[opt_param] = params[opt_param]
 
-        res = dfu.save_objects({"id": ws_name_id,
-                                "objects": [{"type": "KBaseRNASeq.RNASeqAlignment",
-                                             "data": aligner_data,
-                                             "name": obj_name_id}
-                                            ]})[0]
-
+        res = self.dfu.save_objects({"id": ws_name_id,
+                                     "objects": [{"type": "KBaseRNASeq.RNASeqAlignment",
+                                                  "data": aligner_data,
+                                                  "name": obj_name_id}
+                                                ]})[0]
         self.log('save complete')
 
         returnVal = {'obj_ref': str(res[6]) + '/' + str(res[0]) + '/' + str(res[4])}
@@ -375,19 +381,16 @@ the stored alignment.
            is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
            workspace name or id and obj_name_or_id is the object name or id
            *) -> structure: parameter "source_ref" of String, parameter
-           "downloadBAM" of type "boolean" (A boolean - 0 for false, 1 for
-           true. @range (0, 1)), parameter "downloadSAM" of type "boolean" (A
+           "downloadSAM" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "downloadBAI" of type "boolean" (A
            boolean - 0 for false, 1 for true. @range (0, 1)), parameter
-           "downloadBAI" of type "boolean" (A boolean - 0 for false, 1 for
-           true. @range (0, 1)), parameter "validate" of type "boolean" (A
-           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
-           "ignore" of list of String
+           "validate" of type "boolean" (A boolean - 0 for false, 1 for true.
+           @range (0, 1)), parameter "ignore" of list of String
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
-           String, parameter "bam_file" of String, parameter "sam_file" of
-           String, parameter "bai_file" of String, parameter "stats" of type
-           "AlignmentStats" -> structure: parameter "properly_paired" of
-           Long, parameter "multiple_alignments" of Long, parameter
+           String, parameter "destination_dir" of String, parameter "stats"
+           of type "AlignmentStats" -> structure: parameter "properly_paired"
+           of Long, parameter "multiple_alignments" of Long, parameter
            "singletons" of Long, parameter "alignment_rate" of Double,
            parameter "unmapped_reads" of Long, parameter "mapped_reads" of
            Long, parameter "total_reads" of Long
@@ -401,72 +404,62 @@ the stored alignment.
 
         inref = params.get(self.PARAM_IN_SRC_REF)
         if not inref:
-            raise ValueError(self.PARAM_IN_SRC_REF + ' parameter is required')
+            raise ValueError('{} parameter is required'.format(self.PARAM_IN_SRC_REF))
 
         info = self._get_ws_info(inref)
 
         obj_ref = str(info[6]) + '/' + str(info[0])
 
-        dfu = DataFileUtil(self.callback_url)
-
         try:
-            alignment = dfu.get_objects({'object_refs': [obj_ref]})['data']
+            alignment = self.dfu.get_objects({'object_refs': [obj_ref]})['data']
         except DFUError as e:
             self.log('Logging stacktrace from workspace exception:\n' + e.data)
             raise
 
         # set the output dir
-        timestamp = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds() * 1000)
-        output_dir = os.path.join(self.scratch, 'download_' + str(timestamp))
+        timestamp = str(int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds() * 1000))
+        output_dir = os.path.join(self.scratch, 'download_' + timestamp)
         os.mkdir(output_dir)
 
-        file_ret = dfu.shock_to_file({'shock_id': alignment[0]['data']['file']['id'],
-                                      'file_path': output_dir
-                                      })
+        file_ret = self.dfu.shock_to_file({'shock_id': alignment[0]['data']['file']['id'],
+                                           'file_path': output_dir
+                                           })
+        if zipfile.is_zipfile(file_ret.get('file_path')):
+            with zipfile.ZipFile(file_ret.get('file_path')) as z:
+                z.extractall(output_dir)
 
-        bam_file = alignment[0]['data']['file']['file_name']
+        for f in glob.glob(output_dir + '/*.zip'):
+            os.remove(f)
 
-        if 'validate' in params and params['validate'] is True:
-            params['file_path'] = bam_file
-            if self._validate(params) == 1:
-                raise Exception('{0} failed validation'.format(bam_file))
+        bam_files = glob.glob(output_dir + '/*.bam')
 
-        print(bam_file)
+        if len(bam_files) == 0:
+            raise ValueError("Alignment object does not contain a bam file")
 
-        dir, file_name, file_base, file_ext = self._get_file_path_info(bam_file)
+        for bam_file_path in bam_files:
+            dir, file_name, file_base, file_ext = self._get_file_path_info(bam_file_path)
+            if params.get(self.PARAM_IN_VALIDATE, False):
+                validate_params = {'file_path': bam_file_path}
+                if self._validate(validate_params) == 1:
+                    raise Exception('{0} failed validation'.format(bam_file_path))
 
-        returnVal = {'ws_id': info[6]}
+            if params.get('downloadBAI', False):
+                bai_file = timestamp + '_' + file_base + '.bai'
+                bai_file_path = os.path.join(output_dir, bai_file)
+                self.samtools.create_bai_from_bam(file_name, output_dir, bai_file)
+                if not os.path.isfile(bai_file_path):
+                    raise ValueError('Error creating {}'.format(bai_file_path))
 
-        if (params.get('downloadBAM', True)):
-            bam_file_path = os.path.join(output_dir, bam_file)
-            if os.path.isfile(bam_file_path):
-                returnVal['bam_file'] = bam_file_path
-            else:
-                raise ValueError('Error downloading ' + bam_file)
+            if params.get('downloadSAM', False):
+                sam_file = timestamp + '_' + file_base + '.sam'
+                sam_file_path = os.path.join(output_dir, sam_file)
+                self.samtools.convert_bam_to_sam(file_name, output_dir, sam_file)
+                if not os.path.isfile(sam_file_path):
+                    raise ValueError('Error creating {}'.format(sam_file_path))
 
-        if (params.get('downloadBAI', False)):
-            bai_file = file_base + '.bai'
-            bai_file_path = os.path.join(output_dir, bai_file)
-            self.samtools.create_bai_from_bam(bam_file, output_dir)
-            if os.path.isfile(bai_file_path):
-                returnVal['bai_file'] = bai_file_path
-            else:
-                raise ValueError('Error downloading ' + bai_file)
-
-        if (params.get('downloadSAM', False)):
-            file_base = file_base.replace('_sorted', '')
-            sam_file = file_base + '.sam'
-            self.samtools.convert_bam_to_sam(bam_file, output_dir, sam_file)
-            sam_file_path = os.path.join(output_dir, sam_file)
-            if os.path.isfile(sam_file_path):
-                returnVal['sam_file'] = sam_file_path
-            else:
-                raise ValueError('Error downloading ' + sam_file)
-
-        if len(returnVal) == 1:
-            raise ValueError('No files were requested to be downloaded')
-
-        returnVal['stats'] = alignment[0]['data']['alignment_stats']
+        returnVal = {'ws_id': info[6],
+                     'destination_dir': output_dir,
+                     'stats': alignment[0]['data']['alignment_stats']}
 
         #END download_alignment
 
@@ -486,13 +479,11 @@ the stored alignment.
            'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
            workspace name or id and obj_name_or_id is the object name or id
            *) -> structure: parameter "source_ref" of String, parameter
-           "exportBAM" of type "boolean" (A boolean - 0 for false, 1 for
-           true. @range (0, 1)), parameter "exportSAM" of type "boolean" (A
+           "exportSAM" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "exportBAI" of type "boolean" (A
            boolean - 0 for false, 1 for true. @range (0, 1)), parameter
-           "exportBAI" of type "boolean" (A boolean - 0 for false, 1 for
-           true. @range (0, 1)), parameter "validate" of type "boolean" (A
-           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
-           "ignore" of list of String
+           "validate" of type "boolean" (A boolean - 0 for false, 1 for true.
+           @range (0, 1)), parameter "ignore" of list of String
         :returns: instance of type "ExportOutput" -> structure: parameter
            "shock_id" of String
         """
@@ -502,36 +493,40 @@ the stored alignment.
 
         inref = params.get(self.PARAM_IN_SRC_REF)
         if not inref:
-            raise ValueError(self.PARAM_IN_SRC_REF + ' parameter is required')
+            raise ValueError('{} parameter is required'.format(self.PARAM_IN_SRC_REF))
 
-        info = self._get_ws_info(inref)
+        if params.get(self.PARAM_IN_VALIDATE, False) or \
+           params.get('exportBAI', False) or \
+           params.get('exportSAM', False):
+            """
+            Need to validate or convert files. Use download_alignment
+            """
+            download_params = {}
+            for key, val in params.iteritems():
+                download_params[key.replace('export', 'download')] = val
 
-        download_params = {}
-        for key, val in params.iteritems():
-            download_params[key.replace('export', 'download')] = val
+            download_retVal = self.download_alignment(ctx, download_params)[0]
 
-        files = self.download_alignment(ctx, download_params)[0]
+            export_dir = download_retVal['destination_dir']
 
-        tempdir = tempfile.mkdtemp(dir=self.scratch)
-        export_dir = os.path.join(tempdir, info[1])
-        os.makedirs(export_dir)
+            # package and load to shock
+            ret = self.dfu.package_for_download({'file_path': export_dir,
+                                                 'ws_refs': [inref]
+                                                 })
+            output = {'shock_id': ret['shock_id']}
+        else:
+            """
+            return shock id from the object
+            """
+            info = self._get_ws_info(inref)
+            obj_ref = str(info[6]) + '/' + str(info[0])
 
-        bamFile = files.get('bam_file')
-        if bamFile:
-            shutil.move(bamFile, os.path.join(export_dir, os.path.basename(bamFile)))
-        samFile = files.get('sam_file')
-        if samFile:
-            shutil.move(samFile, os.path.join(export_dir, os.path.basename(samFile)))
-        baiFile = files.get('bai_file')
-        if baiFile:
-            shutil.move(baiFile, os.path.join(export_dir, os.path.basename(baiFile)))
-
-        # package and load to shock
-        dfu = DataFileUtil(self.callback_url)
-        ret = dfu.package_for_download({'file_path': export_dir,
-                                        'ws_refs': [inref]
-                                        })
-        output = {'shock_id': ret['shock_id']}
+            try:
+                alignment = self.dfu.get_objects({'object_refs': [obj_ref]})['data']
+            except DFUError as e:
+                self.log('Logging stacktrace from workspace exception:\n' + e.data)
+                raise
+            output = {'shock_id': alignment[0]['data']['file']['id']}
 
         #END export_alignment
 
@@ -541,7 +536,6 @@ the stored alignment.
                              'output is not type dict as required.')
         # return the results
         return [output]
-
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
