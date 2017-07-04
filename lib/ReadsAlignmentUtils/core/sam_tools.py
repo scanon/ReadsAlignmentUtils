@@ -250,6 +250,7 @@ class SamTools:
         except Exception as ex:
             log('failed to convert {0} to {1}'.format(ifile, ofile) +
                 '. ' + ex.message, logging.ERROR)
+            return 1
 
         return 0
 
@@ -284,6 +285,7 @@ class SamTools:
 
         except Exception as ex:
             log('failed to get stats from {0}'.format(ifile) + '. ' + ex.message, logging.ERROR)
+            # return {} #TODO send back a dictionary with -1 values
 
         return result
 
