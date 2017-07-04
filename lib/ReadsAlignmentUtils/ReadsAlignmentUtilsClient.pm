@@ -347,7 +347,8 @@ Validates and uploads the reads alignment  *
 $params is a ReadsAlignmentUtils.DownloadAlignmentParams
 $return is a ReadsAlignmentUtils.DownloadAlignmentOutput
 DownloadAlignmentParams is a reference to a hash where the following keys are defined:
-	source_ref has a value which is a string
+	ws_id_or_name has a value which is a string
+	obj_id_or_name has a value which is a string
 	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
@@ -378,7 +379,8 @@ AlignmentStats is a reference to a hash where the following keys are defined:
 $params is a ReadsAlignmentUtils.DownloadAlignmentParams
 $return is a ReadsAlignmentUtils.DownloadAlignmentOutput
 DownloadAlignmentParams is a reference to a hash where the following keys are defined:
-	source_ref has a value which is a string
+	ws_id_or_name has a value which is a string
+	obj_id_or_name has a value which is a string
 	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
@@ -809,11 +811,11 @@ validated has a value which is a ReadsAlignmentUtils.boolean
                                 where ws_name_or_id is the workspace name or id
                                 and obj_name_or_id is the object name or id
 
-          file_path         -  Source: file with the path of the sam or bam file to be uploaded
+          file_path      -  Source: file with the path of the sam or bam file to be uploaded
 
-          library_type      - ???single_end??? or ???paired_end???
-          condition         -
-          genome_id         -  workspace id of genome annotation that was
+          library_type   - ‘single_end’ or ‘paired_end’
+          condition      - experimental condition (test, control etc.)
+          genome_id      -  workspace id of genome annotation that was
                             used to build the alignment
       read_sample_id    -  workspace id of read sample used to make
                             the alignment file
@@ -935,7 +937,8 @@ obj_ref has a value which is a string
 
 <pre>
 a reference to a hash where the following keys are defined:
-source_ref has a value which is a string
+ws_id_or_name has a value which is a string
+obj_id_or_name has a value which is a string
 downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
@@ -949,7 +952,8 @@ ignore has a value which is a reference to a list where each element is a string
 =begin text
 
 a reference to a hash where the following keys are defined:
-source_ref has a value which is a string
+ws_id_or_name has a value which is a string
+obj_id_or_name has a value which is a string
 downloadBAM has a value which is a ReadsAlignmentUtils.boolean
 downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 downloadBAI has a value which is a ReadsAlignmentUtils.boolean
