@@ -15,6 +15,7 @@ notifications:
     on_success: never
     on_failure: always
 
+#TEST_TOKEN
 env:
   global:
     secure: Uou6bSTvw9bZFRTISp6+AJrfoRZqRxcMMOBVCdXIWSqcmuMlr3dXjb2n99cWtCbc7hQ7QbkbnUY1yoae1tU3+gGvsJch/RJDr0hPSZonErZ7Y50yZ3hDG3jlvf+1Wop8kUPEeW2PvzJUWqN8M8LhHUc4sBgHYg0kyB21ZO57ACDWyP7WPmjI/3K7URoysLdxBdXh6/HunpglcFLca8DfN5hn0Fs/q14FZ374ARAjR5HeGoqDrnzkpi4sV64Rxh/KgdA5000EXo35MpTe+6ms2wB2BRdXQegtBgencfTetBnkXXw2PrNJQgy7bj5LjxXvACk8JgjD8CV36kMiBxtJkaUkC/M3K2eqWOXOUXEWuxap7hzD6qo/6lYRLLC/HmbD66EiNZFoqtklYmB/qI2IjVmpGPHCWmIc4Gp12DhbxF2hAhh5SEzABPYzxWoR84D2FGeqDNK2ttJcomd1BoBiYGjrPE4AXwtDT5/fomm/m+++2J1tmq9ZvcSqP3Ozw/Royc/hz4/m++oNZa3U9be1XgLQjhvn7NrKfkhVUzhDco2XvRvpRlg+yXHnrAcbqXgktXFBCZCLBLf9RjfGuQiRxjiy3B/jHM0TfBv113Hb9whZasDSmjRrAhojbbcPHk0OkpvY+JRBpxh+2T9t4M/IfpNrpWRC6ILmLQ4XQt5NC48=
@@ -46,10 +47,12 @@ install:
 - sed -i 's\https://appdev.kbase.us/services\https://ci.kbase.us/services\' test_local/test.cfg
 - sed -i 's\https://appdev.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\https://ci.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\' test_local/test.cfg
 - sed -i 's/$(id -u)/0:0/' test_local/run_tests.sh
+- pwd=$(pwd)
+- echo '#!/bin/bash' >> test_local/run_subjob.sh
+- echo "$pwd/test_local/run_docker.sh run --rm --user $(id -u) -v $pwd/test_local/subjobs/$1/workdir:/kb/module/work -v $pwd/test_local/workdir/tmp:/kb/module/work/tmp $4 -e "SDK_CALLBACK_URL=$3" $2 async" >> test_local/run_subjob.sh
+- cat test_local/run_subjob.sh
 
 script:
-- kb-sdk test || true
-- sed -i 's/$(id -u)/0:0/' test_local/run_subjob.sh
 - kb-sdk test
 
 after_success:
