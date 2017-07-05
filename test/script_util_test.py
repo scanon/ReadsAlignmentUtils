@@ -73,3 +73,5 @@ class ScriptUtilsTest(unittest.TestCase):
         self.assertEquals(script_utils.whereis('ls'), '/bin/ls', 'ls program not found in path!')
 
 
+if __name__ == '__main__':
+      unittest.main()

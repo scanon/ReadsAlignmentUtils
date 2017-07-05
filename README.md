@@ -1,3 +1,7 @@
+Build status:<br>
+master: [![Coverage Status](https://coveralls.io/repos/github/arfathpasha/ReadsAlignmentUtils/badge.svg?branch=travis)](https://coveralls.io/github/arfathpasha/ReadsAlignmentUtils?branch=travis)<br>
+master:  [![Build Status](https://travis-ci.org/arfathpasha/ReadsAlignmentUtils.svg?branch=travis)](https://travis-ci.org/arfathpasha/ReadsAlignmentUtils)<br>
+develop: [![Build Status](https://travis-ci.org/arfathpasha/ReadsAlignmentUtils.svg?branch=develop)](https://travis-ci.org/arfathpasha/ReadsAlignmentUtils)
 
 # ReadsAlignmentUtils
 ---

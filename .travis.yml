@@ -1,70 +1,63 @@
 language: python
 
-
 python:
-    - "2.7"
+- '2.7'
 
 sudo: required
 
 services:
-    - docker
+- docker
 
 notifications:
   email:
     recipients:
-      - arfathpasha@gmail.com
-    on_success: never # default: change
-    on_failure: always # default: always
+    - arfathpasha@gmail.com
+    on_success: never
+    on_failure: always
 
 env:
   global:
-    # TEST_USER
-    #- secure: "Yj5naQWntR9Mjc41USqNepyicl/e2/ARKBowdaVfF/pZ+rMrhOk0IgeH+cpqhrUdnDlAG7GHsOfvqP4eYGId3xJHT/YQQm2Ss+9OOaNq4/obufzxmxuMlLXzWjsQCOUw+TIK0Tvi+PELeqTkqg6HBiWJX/eUYVNjyp8lG16wGmAIwHlfqXdzyD7RXX87hlzNff4kIybcdG9qJctrrFbJfENOW1NocktUn6Pv095v4R41Nw/xR//F42eu9gv+LTkRUw0CBs2ih3DEjgAeUQN0fYV/pgsIxCe3LWK6cJH7J0D/Vge1ZknTdVynD9t2freyM4/Qa61Hi47s9zSTOPDg2NeJRbmgaGCQcwiN47ahsbdWuxpkU4tok/yWKAdiQckkRg+P0vUGrj/C/eu1mW6EwY/52WqW+afW48wAKzuUuRH0jKJtYaQtfagIdhH++0GxEAn5bscnk/8V/IKytKWLkC0KQDsbx54wkPoxXu87iSXlOw6JYQsbgEL2SU/HqZCv/R+pOePu/z9Bzcged0geykK7NvCrgCccsmFeCHpNpIaR5qXmLTabIsjdQIGhGPK4RMCFs1DFYxjGKX3BTEVcsrDK1RSHyFKFY5AlkeZI+2jfR0y0mTwf+6ckKnGaENUuC7HL2G+JRJIiDD5gSMUZ/fciaBXix3F4I8skMt+iF/4="
-    # TEST_PASSWORD
-    #- secure: "V8TuLmNg7n/fzdOkv3hcd/TFzexKRmrjBmFmlMqSXXbG3A1BlkIJOdhDLWjxKiWVGLOENXkiBd9CPOEKwZnJAfoOm3hdpZ3tTrsGqL/0DTCgwmP8Uj1RZ8zt5hYu4IfTnJHLJmNEzwfZ29eC1ONhsSXp9ATbG7lyI2BqFchwnOFGcg03CJ5fl+CJAucrJta/uHNaRXRpnf33DG3M105X/V7WdzNDIfQBCLgx+ZyuvQo0AxZpDy9+iRFqt0cNfhAsYKnsLFJ+VSv+4Fzj+a+uGnXLz/jLFJCSt3Z9CuOuuiepCjkFAgMuJ6W58C6M/0t8/ixPeeVKs7acIKnaTKJ7B8MPM/O1Y3GMdpS+elwLWV1Z9Ku3V3suSMcYv+PeErN78+vGVR/iH/zw8mue+1yxQvBPMjl/zVmgHgG3YOevHKu/RUNLLVMt+/jrHGe2+HqHIIdejO1dwOWDDfstsVRGbpFU8VXQplM7+3iSe6q7aY07ZsRgDzk2SHI2cCg0Th5lUp8ri2oeMaAuFJSD2nWpT0bvull1jNoYRK4/h/3Pam2Hw64CQr2wIMhLBAfeVcvhLaNaVi8wCWxTHyHJ0cDpTd307mqnsuU+HIfmVzatYpXM7RXJXvYcAxfmRnKh9xOsNRyetyFbfmuzLTEedMYMT5Q6J7v5DORDzpU5F8kklA0="
-    # TEST_TOKEN
-    secure: "RQf2v8VWKNngMT9vF33qM0X1uNIqbuPNpOxcfzVn1/adPvT8ImQ5YoX5ays1SEbAU67I6zg37uO/BjFNoNm2xz+6uRW5GwFbxr0i1zGQuZl7fr5u/AYN8p2ectP+J6zRrTWQHkhOUow6ShU8OYw5e8rc9UWN4MnuVC9p9l60QmS4fcHv0aKpdnkYhQz+DuUhtSG8t1WI9ozzRpOouJIemxcoA1sbLkTvaNm9ma7f6sW26vS7kBpByn7vwj7oBaTB21c3asOWrTS9bMcixW19knvz5mOACJQyBllIs1aqTI08jGayb1VaiFCtToHq1H3HgQgoW/Fdn+fLEoTU+e0aAF/km52Ahwaav+TdxOgnwqtdbuPFeCF06Q8Ooo3PsdK5tHAaW1ppkkkM/Y7oSNLxiBa6E5+D7/ovA4x5hKTjzoYx+zJZ77OIf0fmb8SXw/ldzWgOhMCqwE7LT1abXCKNzBVTx6kOJdJUplg/B24I1ylgAtbKnJ4NB7Hvlg0q698qFGURMzpkttoqY24MhCROcE2DbMA+hOoEHzYndW3vTB2zGJ0e2gpdzGjG9Pk6bSAN56D5a5wobnvMFhw7M+nYbctyr243BvXLVXiZ9MyG7CeLvI9rVuoMLYCJEaWvB/Z4jnSJPxG3i1uhEehahaV9G9NNQAs/6LKbrWjdRdXGg0k="
+    secure: Uou6bSTvw9bZFRTISp6+AJrfoRZqRxcMMOBVCdXIWSqcmuMlr3dXjb2n99cWtCbc7hQ7QbkbnUY1yoae1tU3+gGvsJch/RJDr0hPSZonErZ7Y50yZ3hDG3jlvf+1Wop8kUPEeW2PvzJUWqN8M8LhHUc4sBgHYg0kyB21ZO57ACDWyP7WPmjI/3K7URoysLdxBdXh6/HunpglcFLca8DfN5hn0Fs/q14FZ374ARAjR5HeGoqDrnzkpi4sV64Rxh/KgdA5000EXo35MpTe+6ms2wB2BRdXQegtBgencfTetBnkXXw2PrNJQgy7bj5LjxXvACk8JgjD8CV36kMiBxtJkaUkC/M3K2eqWOXOUXEWuxap7hzD6qo/6lYRLLC/HmbD66EiNZFoqtklYmB/qI2IjVmpGPHCWmIc4Gp12DhbxF2hAhh5SEzABPYzxWoR84D2FGeqDNK2ttJcomd1BoBiYGjrPE4AXwtDT5/fomm/m+++2J1tmq9ZvcSqP3Ozw/Royc/hz4/m++oNZa3U9be1XgLQjhvn7NrKfkhVUzhDco2XvRvpRlg+yXHnrAcbqXgktXFBCZCLBLf9RjfGuQiRxjiy3B/jHM0TfBv113Hb9whZasDSmjRrAhojbbcPHk0OkpvY+JRBpxh+2T9t4M/IfpNrpWRC6ILmLQ4XQt5NC48=
 
 branches:
   only:
-    - travis
+  - travis
 
 before_install:
-    - docker version
-    - python --version
+- docker version
+- python --version
 
 install:
-    - pip install coveralls
-    - pip install coverage
-    - git clone https://github.com/kbase/jars
-    - git clone https://github.com/kbase/kb_sdk
-    - cd kb_sdk
-    - make
-    - make sdkbase
-    - docker images
-    - export PATH=$(pwd)/bin:$PATH
-    - cd ../
-    #IMPORTANT change clone to kbaseapps and finally to kbase after pull requeststravis
-    - git clone https://github.com/arfathpasha/ReadsAlignmentUtils.git
-    - cd ReadsAlignmentUtils
-    - git checkout travis
-    # run the kb-sdk test command once to build test_local dir and populate the .ignore files
-    - kb-sdk test -s || true
-    # add test config
-    #- sed -i "s/test_user=/test_user=$TEST_USER/" test_local/test.cfg
-    #- sed -i "s/test_password=/test_password=$TEST_PASSWORD/" test_local/test.cfg
-    - sed -i "s/test_token=/test_token=$TEST_TOKEN/" test_local/test.cfg
-    - sed -i 's\https://appdev.kbase.us/services\https://ci.kbase.us/services\' test_local/test.cfg
-    - sed -i 's\https://appdev.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\https://ci.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\' test_local/test.cfg
-    - cat test_local/test.cfg
+- pip install coveralls
+- pip install coverage
+- git clone https://github.com/kbase/jars
+- git clone https://github.com/kbase/kb_sdk
+- cd kb_sdk
+- make
+- make sdkbase
+- docker images
+- export PATH=$(pwd)/bin:$PATH
+- cd ../
+- git clone https://github.com/arfathpasha/ReadsAlignmentUtils.git
+- cd ReadsAlignmentUtils
+- git checkout travis  # TODO remove
+- kb-sdk test -s || true
+- sed -i "s/test_token=/test_token=$TEST_TOKEN/" test_local/test.cfg
+- sed -i 's\https://appdev.kbase.us/services\https://ci.kbase.us/services\' test_local/test.cfg
+- sed -i 's\https://appdev.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\https://ci.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\' test_local/test.cfg
+- sed -i 's/$(id -u)/0:0/' test_local/run_tests.sh
 
 script:
-    - kb-sdk test
+- kb-sdk test || true
+- sed -i 's/$(id -u)/0:0/' test_local/run_subjob.sh
+- kb-sdk test
 
 after_success:
-    - cp test_local/workdir/.coverage .
-    - sudo mkdir -p /kb/deployment
-    - sudo cp -R test_local/workdir/kb/deployment/lib /kb/deployment
-    - ls -l /kb/deployment/lib/
-    - coverage report -m
-    - coveralls
+- cp test_local/workdir/.coverage .
+- sudo mkdir -p /kb/module/lib/
+- sudo cp -R test_local/workdir/kb/module/lib/ReadsAlignmentUtils /kb/module/lib/
+- pwd
+- ls -l /kb/module/lib/ReadsAlignmentUtils
+- cat .coverage
+- coverage report -m
+- coveralls

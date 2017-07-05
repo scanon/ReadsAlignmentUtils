@@ -1,7 +1,7 @@
 [run]
 include =
-    lib/kb_cummerbund/*
-    /kb/module/lib/kb_cummerbund/*
+    lib/ReadsAlignmentUtils/*
+    /kb/module/lib/ReadsAlignmentUtils/*
 
 [report]
 # Regexes for lines to exclude from consideration
