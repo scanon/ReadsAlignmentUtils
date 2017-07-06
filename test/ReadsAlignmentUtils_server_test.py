@@ -35,7 +35,7 @@ def dictmerge(x, y):
 
 
 class ReadsAlignmentUtilsTest(unittest.TestCase):
-    '''
+
     @classmethod
     def setUpClass(cls):
         cls.token = environ.get('KB_AUTH_TOKEN', None)
@@ -493,8 +493,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
             'No workspace with name 1s exists')
             
 if __name__ == '__main__':
-      unittest.main()            
-    '''
+      unittest.main()
 
     # TO DO:  add more tests
 
