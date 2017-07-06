@@ -47,13 +47,8 @@ stored alignment.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-<<<<<<< HEAD
-    GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "02675481b10187fcc4b6352ae6e3298aeae39176"
-=======
     GIT_URL = "git@github.com:arfathpasha/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "74ea261b93f2742ca742644299c80a054a975770"
->>>>>>> travis
+    GIT_COMMIT_HASH = "24dacd8a8cd210f228447745713780dac68e72f5"
 
     #BEGIN_CLASS_HEADER
 
@@ -284,21 +279,22 @@ stored alignment.
            destination_ref -  object reference of alignment destination. The
            object ref is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id
            is the workspace name or id and obj_name_or_id is the object name
-           or id file_path      -  Source: file with the path of the sam or
-           bam file to be uploaded library_type   - ‘single_end’ or
-           ‘paired_end’ condition      - experimental condition (test,
-           control etc.) genome_id      -  workspace id of genome annotation
-           that was used to build the alignment read_sample_id    - 
-           workspace id of read sample used to make the alignment file *) ->
+           or id file_path              -  File with the path of the sam or
+           bam file to be uploaded. If a sam file is provided, it will be
+           converted to the sorted bam format before being saved
+           read_library_ref       -  workspace object ref of the read sample
+           used to make the alignment file condition              -
+           assembly_or_genome_ref -  workspace object ref of genome assembly
+           or genome object that was used to build the alignment *) ->
            structure: parameter "destination_ref" of String, parameter
-           "file_path" of String, parameter "library_type" of String,
-           parameter "condition" of String, parameter "genome_id" of String,
-           parameter "read_sample_id" of String, parameter "aligned_using" of
+           "file_path" of String, parameter "read_library_ref" of String,
+           parameter "condition" of String, parameter
+           "assembly_or_genome_ref" of String, parameter "aligned_using" of
            String, parameter "aligner_version" of String, parameter
            "aligner_opts" of mapping from String to String, parameter
            "replicate_id" of String, parameter "platform" of String,
            parameter "bowtie2_index" of type "ws_bowtieIndex_id", parameter
-           "sampleset_id" of type "ws_Sampleset_id", parameter
+           "sampleset_ref" of type "ws_Sampleset_ref", parameter
            "mapped_sample_id" of mapping from String to mapping from String
            to String, parameter "validate" of type "boolean" (A boolean - 0
            for false, 1 for true. @range (0, 1)), parameter "ignore" of list
@@ -384,14 +380,12 @@ stored alignment.
            source_ref -  object reference of alignment source. The object ref
            is 'ws_name_or_id/obj_name_or_id' where ws_name_or_id is the
            workspace name or id and obj_name_or_id is the object name or id
-           *) -> structure: parameter "ws_id_or_name" of String, parameter
-           "obj_id_or_name" of String, parameter "downloadBAM" of type
-           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
-           parameter "downloadSAM" of type "boolean" (A boolean - 0 for
-           false, 1 for true. @range (0, 1)), parameter "downloadBAI" of type
-           "boolean" (A boolean - 0 for false, 1 for true. @range (0, 1)),
-           parameter "validate" of type "boolean" (A boolean - 0 for false, 1
-           for true. @range (0, 1)), parameter "ignore" of list of String
+           *) -> structure: parameter "source_ref" of String, parameter
+           "downloadSAM" of type "boolean" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "downloadBAI" of type "boolean" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "validate" of type "boolean" (A boolean - 0 for false, 1 for true.
+           @range (0, 1)), parameter "ignore" of list of String
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
            of the download method.  *) -> structure: parameter "ws_id" of
            String, parameter "destination_dir" of String, parameter "stats"

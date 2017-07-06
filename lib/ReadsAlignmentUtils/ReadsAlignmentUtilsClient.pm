@@ -374,13 +374,7 @@ AlignmentStats is a reference to a hash where the following keys are defined:
 $params is a ReadsAlignmentUtils.DownloadAlignmentParams
 $return is a ReadsAlignmentUtils.DownloadAlignmentOutput
 DownloadAlignmentParams is a reference to a hash where the following keys are defined:
-<<<<<<< HEAD
 	source_ref has a value which is a string
-=======
-	ws_id_or_name has a value which is a string
-	obj_id_or_name has a value which is a string
-	downloadBAM has a value which is a ReadsAlignmentUtils.boolean
->>>>>>> travis
 	downloadSAM has a value which is a ReadsAlignmentUtils.boolean
 	downloadBAI has a value which is a ReadsAlignmentUtils.boolean
 	validate has a value which is a ReadsAlignmentUtils.boolean
