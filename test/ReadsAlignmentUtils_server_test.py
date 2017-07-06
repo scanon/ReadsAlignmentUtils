@@ -154,10 +154,10 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
     @classmethod
     def upload_file_to_shock_and_get_handle(cls, test_file):
-        '''
+        """
         Uploads the file in test_file to shock and returns the node and a
         handle to the node.
-        '''
+        """
         print('loading file to shock: ' + test_file)
         node = cls.upload_file_to_shock(test_file)
         pprint(node)
@@ -527,6 +527,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         self.assertEquals(False, ret['validated'])
 
+
     def fail_upload_alignment(self, params, error, exception=ValueError, do_startswith=False):
 
         test_name = inspect.stack()[1][3]
@@ -613,5 +614,9 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                         'file_path': 'bar'
                       }, self.more_upload_params),
             'No workspace with name 1s exists')
+
+            
+if __name__ == '__main__':
+      unittest.main()
 
     # TO DO:  add more tests

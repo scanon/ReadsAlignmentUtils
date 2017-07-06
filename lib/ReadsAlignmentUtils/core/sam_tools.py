@@ -147,7 +147,10 @@ class SamTools:
         # convert
         self._check_prog()
 
-        # samtools view -bS ifile | samtools sort -l 9 -O BAM > ofile
+        #   samtools view -bS ifile | samtools sort -l 9 -O BAM > ofile
+        # samtools appears to operates on garbage-in-garbage out policy. i.e.
+        # it does not validate input and always returns True. Hence output
+        # value is not being checked.
         try:
             sort = Popen(
                 'samtools sort -l 9 -O BAM > {0}'.format(ofile),
@@ -196,7 +199,10 @@ class SamTools:
         # convert
         self._check_prog()
 
-        # samtools view -h ifile > ofile
+        #   samtools view -h ifile > ofile
+        # samtools appears to operates on garbage-in-garbage out policy. i.e.
+        # it does not validate input and always returns True. Hence output
+        # value is not being checked.
         try:
             convert = Popen('samtools view -h {0} > {1}'.format(ifile, ofile),
                             shell=True, stdin=PIPE, stdout=PIPE)
@@ -242,7 +248,10 @@ class SamTools:
         # convert
         self._check_prog()
 
-        #  samtools index ifile ofile
+        #   samtools index ifile ofile
+        # samtools appears to operates on garbage-in-garbage out policy. i.e.
+        # it does not validate input and always returns True. Hence output
+        # value is not being checked.
         try:
             create = Popen('samtools index {0} {1}'.format(ifile, ofile),
                            shell=True, stdin=PIPE, stdout=PIPE)
@@ -276,7 +285,10 @@ class SamTools:
         self._check_prog()
 
         try:
-            # samtools flagstat ifile
+            #   samtools flagstat ifile
+            # samtools appears to operates on garbage-in-garbage out policy. i.e.
+            # it does not validate input and always returns True. Hence output
+            # value is not being checked.
             stats = Popen('samtools flagstat {0}'.format(ifile),
                           shell=True, stdin=PIPE, stdout=PIPE)
             stats, stderr = stats.communicate()

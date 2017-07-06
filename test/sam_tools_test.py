@@ -210,3 +210,7 @@ class SamToolsTest(unittest.TestCase):
                              ipath='data/samtools')
 
         self.assertEquals(1, rval)
+
+if __name__ == '__main__':
+      unittest.main()
+
