@@ -47,8 +47,8 @@ stored alignment.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "02675481b10187fcc4b6352ae6e3298aeae39176"
+    GIT_URL = "git@github.com:arfathpasha/ReadsAlignmentUtils.git"
+    GIT_COMMIT_HASH = "24dacd8a8cd210f228447745713780dac68e72f5"
 
     #BEGIN_CLASS_HEADER
 
