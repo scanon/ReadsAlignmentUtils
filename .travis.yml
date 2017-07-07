@@ -49,7 +49,7 @@ install:
 - sed -i 's/$(id -u)/0:0/' test_local/run_tests.sh
 - pwd=$(pwd)
 - echo '#!/bin/bash' >> test_local/run_subjob.sh
-- echo "$pwd/test_local/run_docker.sh run --rm --user 0:0 -v $pwd/test_local/subjobs/$1/workdir:/kb/module/work -v $pwd/test_local/workdir/tmp:/kb/module/work/tmp $4 -e "SDK_CALLBACK_URL=$3" $2 async" >> test_local/run_subjob.sh
+- echo "$pwd/test_local/run_docker.sh run --rm --user 0:0 -v $pwd/test_local/subjobs/$$1/workdir:/kb/module/work -v $pwd/test_local/workdir/tmp:/kb/module/work/tmp $$4 -e "SDK_CALLBACK_URL=$$3" $$2 async" >> test_local/run_subjob.sh
 - cat test_local/run_subjob.sh
 
 script:
