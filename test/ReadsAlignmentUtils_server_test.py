@@ -269,7 +269,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         ret = {}
         ret['name'] = file_name
-        ret['data_file'] = os.path.join('data/samtools', file_name)
+        ret['data_file'] = os.path.join('/kb/module/test/data/samtools/', file_name)
         ret['file_path'] = os.path.join(upload_dir, file_name)
         ret['size'] = cls.getSize(ret.get('data_file'))
         ret['md5'] = cls.md5(ret.get('data_file'))
