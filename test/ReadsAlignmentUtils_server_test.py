@@ -264,12 +264,12 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         file_base, file_ext = os.path.splitext(file_name)
 
         timestamp = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds() * 1000)
-        upload_dir = os.path.join(cls.scratch, 'upload_' + file_ext[1:] + str(timestamp))
+        upload_dir = os.path.join(cls.scratch, 'upload_' + file_ext[1:] + '_' + str(timestamp))
         os.mkdir(upload_dir)
 
         ret = {}
         ret['name'] = file_name
-        ret['data_file'] = os.path.join('/kb/module/test/data/samtools/', file_name)
+        ret['data_file'] = os.path.join('data/', file_name)
         ret['file_path'] = os.path.join(upload_dir, file_name)
         ret['size'] = cls.getSize(ret.get('data_file'))
         ret['md5'] = cls.md5(ret.get('data_file'))
@@ -420,14 +420,19 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                                         self.test_sam_file,
                                         self.test_bai_file)
 
+    # Following test uses object refs from a narrative to test backward compatibility to download
+    # already created Alignment objects in RNASeq. comment the next line to run the test
+    @unittest.skip("skipped test_download_legacy_alignment_success")
     def test_download_legacy_alignment_success(self):
+
+        ci_alignment_ref = '22254/23/1'
+        appdev_alignment_ref = '4389/54/1'
 
         test_name = inspect.stack()[1][3]
         print('\n**** starting expected download success test: ' + test_name + ' ***\n')
 
-        params = {'source_ref': '22254/23/1',
-                  'downloadSAM': 'True',
-                  'downloadBAI': 'True'}
+        params = {'source_ref': appdev_alignment_ref,
+                  'downloadSAM': 'True'}
 
         ret = self.getImpl().download_alignment(self.ctx, params)[0]
         print("=================  DOWNLOADED FILES =================== ")
@@ -445,7 +450,6 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         headers = {'Authorization': 'OAuth ' + self.token}
         r = requests.get(node_url, headers=headers, allow_redirects=True)
         fn = r.json()['data']['file']['name']
-        ###self.assertEquals(fn, objname + '.zip')
         tempdir = tempfile.mkdtemp(dir=self.scratch)
         file_path = os.path.join(tempdir, test_name) + '.zip'
         print('zip file path: ' + file_path)
@@ -459,7 +463,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                 fhandle.write(chunk)
         with ZipFile(file_path) as z:
             z.extractall(tempdir)
-        print('zzzzzzzzzzzzzip file contents: ' + str(os.listdir(tempdir)))
+        print('zip file contents: ' + str(os.listdir(tempdir)))
         count = 0
 
         for f in os.listdir(tempdir):
@@ -615,8 +619,3 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                       }, self.more_upload_params),
             'No workspace with name 1s exists')
 
-            
-if __name__ == '__main__':
-      unittest.main()
-
-    # TO DO:  add more tests
