@@ -353,7 +353,6 @@ DownloadAlignmentParams is a reference to a hash where the following keys are de
 	ignore has a value which is a reference to a list where each element is a string
 boolean is an int
 DownloadAlignmentOutput is a reference to a hash where the following keys are defined:
-	ws_id has a value which is a string
 	destination_dir has a value which is a string
 	stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 AlignmentStats is a reference to a hash where the following keys are defined:
@@ -381,7 +380,6 @@ DownloadAlignmentParams is a reference to a hash where the following keys are de
 	ignore has a value which is a reference to a list where each element is a string
 boolean is an int
 DownloadAlignmentOutput is a reference to a hash where the following keys are defined:
-	ws_id has a value which is a string
 	destination_dir has a value which is a string
 	stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 AlignmentStats is a reference to a hash where the following keys are defined:
@@ -1020,7 +1018,6 @@ total_reads has a value which is an int
 
 <pre>
 a reference to a hash where the following keys are defined:
-ws_id has a value which is a string
 destination_dir has a value which is a string
 stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 
@@ -1031,7 +1028,6 @@ stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 =begin text
 
 a reference to a hash where the following keys are defined:
-ws_id has a value which is a string
 destination_dir has a value which is a string
 stats has a value which is a ReadsAlignmentUtils.AlignmentStats
 

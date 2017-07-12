@@ -4,9 +4,7 @@ import os
 import sys
 import re
 import time
-import shutil
 import logging
-#from zipfile import ZipFile
 import zipfile
 import glob
 from datetime import datetime
@@ -17,8 +15,6 @@ from pprint import pformat
 from core import script_utils
 from DataFileUtil.DataFileUtilClient import DataFileUtil
 from DataFileUtil.baseclient import ServerError as DFUError
-from ReadsUtils.ReadsUtilsClient import ReadsUtils
-from ReadsUtils.baseclient import ServerError
 from ReadsAlignmentUtils.core.sam_tools import SamTools
 from Workspace.WorkspaceClient import Workspace
 from Workspace.baseclient import ServerError as WorkspaceError
@@ -47,8 +43,8 @@ stored alignment.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = "git@github.com:arfathpasha/ReadsAlignmentUtils.git"
-    GIT_COMMIT_HASH = "24dacd8a8cd210f228447745713780dac68e72f5"
+    GIT_URL = "https://github.com/kbaseapps/ReadsAlignmentUtils.git"
+    GIT_COMMIT_HASH = "a807d122b097a4c6713a81d5a82eef335835f77a"
 
     #BEGIN_CLASS_HEADER
 
@@ -74,10 +70,6 @@ stored alignment.
 
     INVALID_WS_OBJ_NAME_RE = re.compile('[^\\w\\|._-]')
     INVALID_WS_NAME_RE = re.compile('[^\\w:._-]')
-
-    def log(self, message, prefix_newline=False):
-        print(('\n' if prefix_newline else '') +
-              str(time.time()) + ': ' + message)
 
     def _get_file_path_info(self, file_path):
 
@@ -116,7 +108,7 @@ stored alignment.
                 prefix = se.message.split('.')[0]
                 raise ValueError(prefix)
 
-        self.log('Obtained workspace name/id ' + str(ws_name_id))
+        self.__LOGGER.info('Obtained workspace name/id ' + str(ws_name_id))
 
         return ws_name_id, obj_name_id
 
@@ -126,39 +118,10 @@ stored alignment.
         try:
             info = ws.get_object_info_new({'objects': [{'ref': obj_ref}]})[0]
         except WorkspaceError as wse:
-            self.log('Logging workspace exception')
-            self.log(str(wse))
+            self.__LOGGER.error('Logging workspace exception')
+            self.__LOGGER.error(str(wse))
             raise
         return info
-
-    def _get_read_lib_type(self, ctx, read_lib_ref):
-
-        ws_info = self._get_ws_info(read_lib_ref)
-        readcli = ReadsUtils(self.callback_url)
-        reads_ref = ws_info[7] + '/' + ws_info[1]
-
-        typeerr = ('Supported types: KBaseFile.SingleEndLibrary ' +
-                   'KBaseFile.PairedEndLibrary ' +
-                   'KBaseAssembly.SingleEndLibrary ' +
-                   'KBaseAssembly.PairedEndLibrary')
-        try:
-            reads = readcli.download_reads({'read_libraries': [reads_ref],
-                                            'interleaved': 'false',
-                                            'gzipped': None
-                                            })['files']
-        except ServerError as se:
-            self.log('logging stacktrace from dynamic client error')
-            self.log(se.data)
-            if typeerr in se.message:
-                prefix = se.message.split('.')[0]
-                raise ValueError(
-                    prefix + '. Only the types ' +
-                    'KBaseFile.SingleEndLibrary KBaseAssembly.PairedEndLibrary ' +
-                    'KBaseAssembly.SingleEndLibrary and KBaseFile.PairedEndLibrary are supported')
-
-        self.log('Got reads data from converter:\n' + pformat(reads))
-
-        return reads[reads_ref]['files']['type']
 
     def _proc_upload_alignment_params(self, ctx, params):
         """
@@ -178,7 +141,18 @@ stored alignment.
         if not (os.path.isfile(file_path)):
             raise ValueError('File does not exist: ' + file_path)
 
-        lib_type = self._get_read_lib_type(ctx, params.get(self.PARAM_IN_READ_LIB_REF))
+        lib_type = self._get_ws_info(params.get(self.PARAM_IN_READ_LIB_REF))[2]
+        if lib_type.startswith('KBaseFile.SingleEndLibrary') or \
+           lib_type.startswith('KBaseFile.PairedEndLibrary') or \
+           lib_type.startswith('KBaseAssembly.SingleEndLibrary') or \
+           lib_type.startswith('KBaseAssembly.PairedEndLibrary'):
+            pass
+        else:
+            raise ValueError(self.PARAM_IN_READ_LIB_REF + ' parameter should be of type' +
+                                                          ' KBaseFile.SingleEndLibrary or' +
+                                                          ' KBaseFile.PairedEndLibrary or' +
+                                                          ' KBaseAssembly.SingleEndLibrary or' +
+                                                          ' KBaseAssembly.PairedEndLibrary')
 
         obj_type = self._get_ws_info(params.get(self.PARAM_IN_ASM_GEN_REF))[2]
         if obj_type.startswith('KBaseGenomes.Genome') or \
@@ -307,7 +281,7 @@ stored alignment.
         # return variables are: returnVal
         #BEGIN upload_alignment
 
-        self.log('Starting upload Reads Alignment, parsing parameters ')
+        self.__LOGGER.info('Starting upload Reads Alignment, parsing parameters ')
         pprint(params)
 
         ws_name_id, obj_name_id, file_path, lib_type = self._proc_upload_alignment_params(ctx, params)
@@ -356,12 +330,12 @@ stored alignment.
                                                   "data": aligner_data,
                                                   "name": obj_name_id}
                                                 ]})[0]
-        self.log('save complete')
+        self.__LOGGER.info('save complete')
 
         returnVal = {'obj_ref': str(res[6]) + '/' + str(res[0]) + '/' + str(res[4])}
 
-        print('Uploaded object: ')
-        print(returnVal)
+        self.__LOGGER.info('Uploaded object: ')
+        self.__LOGGER.info(returnVal)
 
         #END upload_alignment
 
@@ -387,10 +361,10 @@ stored alignment.
            "validate" of type "boolean" (A boolean - 0 for false, 1 for true.
            @range (0, 1)), parameter "ignore" of list of String
         :returns: instance of type "DownloadAlignmentOutput" (*  The output
-           of the download method.  *) -> structure: parameter "ws_id" of
-           String, parameter "destination_dir" of String, parameter "stats"
-           of type "AlignmentStats" -> structure: parameter "properly_paired"
-           of Long, parameter "multiple_alignments" of Long, parameter
+           of the download method.  *) -> structure: parameter
+           "destination_dir" of String, parameter "stats" of type
+           "AlignmentStats" -> structure: parameter "properly_paired" of
+           Long, parameter "multiple_alignments" of Long, parameter
            "singletons" of Long, parameter "alignment_rate" of Double,
            parameter "unmapped_reads" of Long, parameter "mapped_reads" of
            Long, parameter "total_reads" of Long
@@ -399,21 +373,17 @@ stored alignment.
         # return variables are: returnVal
         #BEGIN download_alignment
 
-        self.log('Running download_alignment with params:\n' +
+        self.__LOGGER.info('Running download_alignment with params:\n' +
                  pformat(params))
 
         inref = params.get(self.PARAM_IN_SRC_REF)
         if not inref:
             raise ValueError('{} parameter is required'.format(self.PARAM_IN_SRC_REF))
 
-        info = self._get_ws_info(inref)
-
-        obj_ref = str(info[6]) + '/' + str(info[0])
-
         try:
-            alignment = self.dfu.get_objects({'object_refs': [obj_ref]})['data']
+            alignment = self.dfu.get_objects({'object_refs': [inref]})['data']
         except DFUError as e:
-            self.log('Logging stacktrace from workspace exception:\n' + e.data)
+            self.__LOGGER.error('Logging stacktrace from workspace exception:\n' + e.data)
             raise
 
         # set the output dir
@@ -457,8 +427,7 @@ stored alignment.
                 if not os.path.isfile(sam_file_path):
                     raise ValueError('Error creating {}'.format(sam_file_path))
 
-        returnVal = {'ws_id': info[6],
-                     'destination_dir': output_dir,
+        returnVal = {'destination_dir': output_dir,
                      'stats': alignment[0]['data']['alignment_stats']}
 
         #END download_alignment
@@ -518,13 +487,10 @@ stored alignment.
             """
             return shock id from the object
             """
-            info = self._get_ws_info(inref)
-            obj_ref = str(info[6]) + '/' + str(info[0])
-
             try:
-                alignment = self.dfu.get_objects({'object_refs': [obj_ref]})['data']
+                alignment = self.dfu.get_objects({'object_refs': [inref]})['data']
             except DFUError as e:
-                self.log('Logging stacktrace from workspace exception:\n' + e.data)
+                self.__LOGGER.error('Logging stacktrace from workspace exception:\n' + e.data)
                 raise
             output = {'shock_id': alignment[0]['data']['file']['id']}
 
