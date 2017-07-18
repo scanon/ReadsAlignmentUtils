@@ -134,7 +134,6 @@ module ReadsAlignmentUtils {
     /**  The output of the download method.  **/
 
      typedef structure {
-         string     ws_id;          /* source */
          string     destination_dir;
          AlignmentStats stats;
      } DownloadAlignmentOutput;

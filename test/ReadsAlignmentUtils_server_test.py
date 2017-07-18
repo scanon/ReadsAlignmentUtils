@@ -346,7 +346,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
         self.assertEqual(d['genome_id'], params.get('assembly_or_genome_ref'))
         self.assertEqual(d['condition'], params.get('condition'))
         self.assertEqual(d['read_sample_id'], params.get('read_library_ref'))
-        self.assertEqual(d['library_type'], 'paired')
+        self.assertEqual(d['library_type'].startswith('KBaseFile.PairedEndLibrary'), True)
 
         self.assertEqual(d['size'], expected.get('size'))
 
@@ -556,11 +556,9 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         params['read_library_ref'] = self.getWsName() + '/empty'
 
-        self.fail_upload_alignment(params, 'Invalid type for object ' +
-                                   self.staged['empty']['ref'] + ' (empty). Only the types ' +
-                                   'KBaseFile.SingleEndLibrary KBaseAssembly.PairedEndLibrary ' +
-                                   'KBaseAssembly.SingleEndLibrary and ' +
-                                   'KBaseFile.PairedEndLibrary are supported')
+        self.fail_upload_alignment(params, 'read_library_ref parameter should be of type ' +
+                                   'KBaseFile.SingleEndLibrary or KBaseFile.PairedEndLibrary or ' +
+                                   'KBaseAssembly.SingleEndLibrary or KBaseAssembly.PairedEndLibrary')
 
     def test_upload_fail_no_dst_ref(self):
         self.fail_upload_alignment(
@@ -618,4 +616,5 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                         'file_path': 'bar'
                       }, self.more_upload_params),
             'No workspace with name 1s exists')
+
 
