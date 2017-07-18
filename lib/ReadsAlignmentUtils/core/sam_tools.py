@@ -66,9 +66,15 @@ class SamTools:
         m = two_nums.match(lines[4])
         mapped_r = int(m.group(1))
         unmapped_r = int(total_read - mapped_r)
-        alignment_rate = float(mapped_r) / float(total_read) * 100.0
-        if alignment_rate > 100:
-            alignment_rate = 100.0
+
+        if total_read == 0:
+            self.logger.error('alignment stats don\'t look right. total_qcpr + total_qcfr = 0. '
+                              'setting aligment_rate = 0.')
+            alignment_rate = 0
+        else:
+            alignment_rate = float(mapped_r) / float(total_read) * 100.0
+            if alignment_rate > 100:
+                alignment_rate = 100.0
 
         # singletons
         m = two_nums.match(lines[10])
