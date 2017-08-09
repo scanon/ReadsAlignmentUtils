@@ -325,11 +325,19 @@ stored alignment.
             if opt_param in params and params[opt_param] is not None:
                 aligner_data[opt_param] = params[opt_param]
 
+        self.__LOGGER.info('=========  Adding extra_provenance_refs')
+        self.__LOGGER.info(params.get(self.PARAM_IN_READ_LIB_REF))
+        self.__LOGGER.info(params.get(self.PARAM_IN_ASM_GEN_REF))
+        self.__LOGGER.info('=======================================')
+
         res = self.dfu.save_objects({"id": ws_name_id,
                                      "objects": [{"type": "KBaseRNASeq.RNASeqAlignment",
                                                   "data": aligner_data,
-                                                  "name": obj_name_id}
-                                                ]})[0]
+                                                  "name": obj_name_id,
+                                                  "extra_provenance_input_refs":
+                                                      [params.get(self.PARAM_IN_READ_LIB_REF),
+                                                       params.get(self.PARAM_IN_ASM_GEN_REF)]}
+                                                 ]})[0]
         self.__LOGGER.info('save complete')
 
         returnVal = {'obj_ref': str(res[6]) + '/' + str(res[0]) + '/' + str(res[4])}
