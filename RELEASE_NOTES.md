@@ -12,3 +12,7 @@ __Changes__
 --Changes__
 - download_alignment() returns 'destination_dir' containing all the files in the alignment object, instead of
 'bam_file_path'. This was made to download legacy RNASeqAlignment objects which contained more than one file.
+
+### Version 0.1.0
+
+- Bumped up the version for release
