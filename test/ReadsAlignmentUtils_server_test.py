@@ -508,7 +508,7 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
                                       self.test_bai_file)
 
     def test_valid_validate_alignment(self):
-        params = {'file_path': 'data/samtools/accepted_hits.sam',
+        params = {'file_path': '/kb/module/test/data/samtools/accepted_hits.sam',
                   'ignore': ['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
                              'INVALID_MAPPING_QUALITY']}
 
@@ -516,14 +516,14 @@ class ReadsAlignmentUtilsTest(unittest.TestCase):
 
         self.assertEquals(True, ret['validated'])
 
-        params = {'file_path': 'data/samtools/accepted_hits.sam'}
+        params = {'file_path': '/kb/module/test/data/samtools/accepted_hits.sam'}
 
         ret = self.getImpl().validate_alignment(self.ctx, params)[0]
 
         self.assertEquals(True, ret['validated'])
 
     def test_valid_invalidate_alignment(self):
-        params = {'file_path': 'data/samtools/accepted_hits_invalid.sam',
+        params = {'file_path': '/kb/module/test/data/samtools/accepted_hits_invalid.sam',
                   'ignore': ['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
                              'INVALID_MAPPING_QUALITY']}
 

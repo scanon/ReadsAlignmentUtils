@@ -73,7 +73,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         result = samt.convert_sam_to_sorted_bam(ifile='accepted_hits.sam',
-                                                ipath='data/samtools',
+                                                ipath='/kb/module/test/data/samtools',
                                                 ofile=ofile,
                                                 opath=opath)
 
@@ -92,7 +92,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         result = samt.convert_sam_to_sorted_bam(ifile='accepted_hits_invalid.sam',
-                                                ipath='data/samtools',
+                                                ipath='/kb/module/test/data/samtools',
                                                 ofile=ofile,
                                                 opath=opath, validate=True)
 
@@ -108,7 +108,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         result = samt.convert_bam_to_sam(ifile='accepted_hits_sorted.bam',
-                                         ipath='data/samtools',
+                                         ipath='/kb/module/test/data/samtools',
                                          ofile=ofile,
                                          opath=opath)
 
@@ -127,7 +127,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         result = samt.convert_bam_to_sam(ifile='accepted_hits_invalid.bam',
-                                         ipath='data/samtools',
+                                         ipath='/kb/module/test/data/samtools',
                                          ofile=ofile,
                                          opath=opath, validate=True)
 
@@ -143,7 +143,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         result = samt.create_bai_from_bam(ifile='accepted_hits_sorted.bam',
-                                          ipath='data/samtools',
+                                          ipath='/kb/module/test/data/samtools',
                                           ofile=ofile,
                                           opath=opath)
 
@@ -162,7 +162,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         result = samt.create_bai_from_bam(ifile='accepted_hits_invalid.bam',
-                                          ipath='data/samtools',
+                                          ipath='/kb/module/test/data/samtools',
                                           ofile=ofile,
                                           opath=opath, validate=True)
 
@@ -173,7 +173,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         stats = samt.get_stats(ifile='accepted_hits.sam',
-                               ipath='data/samtools')
+                               ipath='/kb/module/test/data/samtools')
 
         self.assertEquals(stats['unmapped_reads'], 285)
         self.assertEquals(stats['mapped_reads'], 19213)
@@ -197,7 +197,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         rval = samt.validate(ifile='accepted_hits.sam',
-                             ipath='data/samtools',
+                             ipath='/kb/module/test/data/samtools',
                              ignore=['MISSING_READ_GROUP'])
 
         self.assertEquals(0, rval)
@@ -207,7 +207,7 @@ class SamToolsTest(unittest.TestCase):
         samt = SamTools(self.__class__.cfg, self.__class__.__LOGGER)
 
         rval = samt.validate(ifile='accepted_hits_invalid.sam',
-                             ipath='data/samtools')
+                             ipath='/kb/module/test/data/samtools')
 
         self.assertEquals(1, rval)
 

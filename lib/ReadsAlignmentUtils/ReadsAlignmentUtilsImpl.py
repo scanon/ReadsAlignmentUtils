@@ -170,15 +170,18 @@ stored alignment.
         """
         Gets the aligner stats from BAM file
         """
-        return self.samtools.get_stats(bam_file)
+        path, file = os.path.split(bam_file)
+        return self.samtools.get_stats(file, path)
 
     def _validate(self, params):
         samt = SamTools(self.config, self.__LOGGER)
         if 'ignore' in params:
-            rval = samt.validate(ifile=params['file_path'], ipath=None,
+            path, file = os.path.split(params['file_path'])
+            rval = samt.validate(ifile=file, ipath=path,
                                  ignore=params['ignore'])
         else:
-            rval = samt.validate(ifile=params['file_path'], ipath=None)
+            path, file = os.path.split(params['file_path'])
+            rval = samt.validate(ifile=file, ipath=path)
 
         return rval
 

@@ -1,6 +1,6 @@
 from script_utils import log as log
 from script_utils import whereis
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, call
 import os
 import re
 import logging
@@ -25,7 +25,9 @@ class SamTools:
         setup input and output file paths and extensions
         """
         if ipath is None:
-            ipath = ''
+            raise Exception("Excepted an absolute path to input file to sam tools. Cannot be none.")
+        if opath is not None and not opath.startswith('/'):
+            raise Exception("Output path must be an absolute path. Provided: "+str(opath))
         if opath is None:
             opath = ipath
         if ofile is None:
@@ -120,7 +122,7 @@ class SamTools:
 
         return True
 
-    def convert_sam_to_sorted_bam(self, ifile, ipath=None, ofile=None, opath=None,
+    def convert_sam_to_sorted_bam(self, ifile, ipath, ofile=None, opath=None,
                                   validate=False, ignore=['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
                                                           'INVALID_MAPPING_QUALITY']):
         """
@@ -130,10 +132,10 @@ class SamTools:
         not be written to disk
 
         :param ifile: sam file name
-        :param ipath: path to sam file. If None, ipath is set to current path
+        :param ipath: absolute path to sam file.
         :param ofile: sorted bam file name. If None, ifile name is used with the
         extension '.sam' (if any) replaced with '.bam'
-        :param opath: path to sorted bam file. If None, ipath will be used
+        :param opath: absolute path to sorted bam file. If None, ipath will be used
         :param validate: set to true if sam file needs to be validated. Default=False
         :param ignore: see validate() method param
 
@@ -147,7 +149,7 @@ class SamTools:
             raise RuntimeError(None, 'Input sam file does not exist: ' + str(ifile))
 
         # validate input sam file
-        if validate and self.validate(ifile, ipath=None, ignore=ignore) == 1:
+        if validate and self.validate(ifile, ipath, ignore=ignore) == 1:
             return 1
 
         # convert
@@ -162,8 +164,9 @@ class SamTools:
                 'samtools sort -l 9 -O BAM > {0}'.format(ofile),
                 shell=True,
                 stdin=PIPE,
-                stdout=PIPE)
-            view = Popen('samtools view -bS {0}'.format(ifile), shell=True, stdout=sort.stdin)
+                stdout=PIPE,
+                cwd=opath)
+            view = Popen('samtools view -bS {0}'.format(ifile), shell=True, stdout=sort.stdin, cwd=opath)
             result, stderr = sort.communicate()  # samtools always returns success
             view.wait()
         except Exception as ex:
@@ -172,7 +175,7 @@ class SamTools:
 
         return 0
 
-    def convert_bam_to_sam(self, ifile, ipath=None, ofile=None, opath=None,
+    def convert_bam_to_sam(self, ifile, ipath, ofile=None, opath=None,
                            validate=False, ignore=['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
                                                    'INVALID_MAPPING_QUALITY']):
         """
@@ -182,7 +185,7 @@ class SamTools:
         not be written to disk
 
         :param ifile: bam file name
-        :param ipath: path to bam file. If None, ipath is set to current path
+        :param ipath: absolute path to bam file.
         :param ofile: sam file name. If None, ifile name is used with the
         extension '.bam' (if any) replaced with '.sam'
         :param opath: path to sam file. If None, ipath will be used
@@ -199,7 +202,7 @@ class SamTools:
             raise RuntimeError(None, 'Input bam file does not exist: ' + str(ifile))
 
         # validate input sam file
-        if validate and self.validate(ifile, ipath=None, ignore=ignore) == 1:
+        if validate and self.validate(ifile, ipath, ignore=ignore) == 1:
             return 1
 
         # convert
@@ -211,7 +214,7 @@ class SamTools:
         # value is not being checked.
         try:
             convert = Popen('samtools view -h {0} > {1}'.format(ifile, ofile),
-                            shell=True, stdin=PIPE, stdout=PIPE)
+                            shell=True, stdin=PIPE, stdout=PIPE, cwd=opath)
             convert.communicate()
         except Exception as ex:
             log('failed to convert {0} to {1}'.format(ifile, ofile) +
@@ -219,7 +222,7 @@ class SamTools:
 
         return 0
 
-    def create_bai_from_bam(self, ifile, ipath=None, ofile=None, opath=None,
+    def create_bai_from_bam(self, ifile, ipath, ofile=None, opath=None,
                             validate=False, ignore=['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
                                                     'INVALID_MAPPING_QUALITY']):
         """
@@ -229,7 +232,7 @@ class SamTools:
         not be written to disk
 
         :param ifile: bam file name
-        :param ipath: path to bam file. If None, ipath is set to current path
+        :param ipath: absolute path to bam file
         :param ofile: bai file name. If None, ifile name is used with the
         extension '.bam' (if any) replaced with '.bai'
         :param opath: path to bai file. If None, ipath will be used
@@ -248,7 +251,7 @@ class SamTools:
                                'Input bam file does not exist: ' + str(ifile))
 
         # validate input sam file
-        if validate and self.validate(ifile, ipath=None, ignore=ignore) == 1:
+        if validate and self.validate(ifile, ipath, ignore=ignore) == 1:
             return 1
 
         # convert
@@ -260,7 +263,7 @@ class SamTools:
         # value is not being checked.
         try:
             create = Popen('samtools index {0} {1}'.format(ifile, ofile),
-                           shell=True, stdin=PIPE, stdout=PIPE)
+                           shell=True, stdin=PIPE, stdout=PIPE, cwd=opath)
             create.communicate()
         except Exception as ex:
             log('failed to convert {0} to {1}'.format(ifile, ofile) +
@@ -269,17 +272,18 @@ class SamTools:
 
         return 0
 
-    def get_stats(self, ifile, ipath=None):
+    def get_stats(self, ifile, ipath):
         """
         Generate simple statistics from a BAM file. The statistics collected include
         counts of aligned and unaligned reads as well as all records with no start
         coordinate.
 
         :param ifile: bam file name
-        :param ipath: path to bam file. If None, ipath is set to current path
+        :param ipath: absolute path to bam file.
         """
-        if ipath is None:
-            ipath = ''
+        if not ipath.startswith('/'):
+            raise Exception("Input path must be an absolute path. Provided: " + str(ipath))
+
         ifile = os.path.join(ipath, ifile)
 
         # check if input file exists
@@ -307,26 +311,27 @@ class SamTools:
 
         return result
 
-    def validate(self, ifile, ipath=None,
+    def validate(self, ifile, ipath,
                  ignore=['MATE_NOT_FOUND', 'MISSING_READ_GROUP',
                          'INVALID_MAPPING_QUALITY']):
         """
         Validates the input bam file. Logs the errors if errors are found
 
         :param ifile: bam file name
-        :param ipath: path to bam file. If None, ipath is set to current path
+        :param ipath: absolute path to bam file.
         :param ignore: list of errors to ignore (see
         http://broadinstitute.github.io/picard/command-line-overview.html#ValidateSamFile)
         :returns 0 if successful, else 1
         """
-        if ipath is None:
-            ipath = ''
+        if not ipath.startswith('/'):
+            raise Exception("Input path must be an absolute path. Provided: " + str(ipath))
+
         ifile = os.path.join(ipath, ifile)
 
         # check if input file exists
         if not os.path.exists(ifile):
             raise RuntimeError(None,
-                               'Input bam file does not exist: ' + str(ifile))
+                               'Input file does not exist: ' + str(ifile))
 
         try:
             # java -jar picard.jar ValidateSamFile I=ifile MODE=SUMMARY
