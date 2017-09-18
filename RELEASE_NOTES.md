@@ -1,3 +1,15 @@
+--Changes__
+
+### Version 0.2.0
+- Fixed issue with samtools writing tmp files to current working directory when input files are very large.
+
+### Version 0.1.0
+- download_alignment() returns 'destination_dir' containing all the files in the alignment object, instead of
+'bam_file_path'. This was made to download legacy RNASeqAlignment objects which contained more than one file.
+- Bumped up the version for release
+
+### Version 0.0.2
+
 ### Version 0.0.1
 __Initial version of the module to upload, download, validate and export RNASeq Alignment data.__
 - Validates, saves and retrieves the alignment data file generated either by BowTie2, TopHat2 or HISAT2 App.
@@ -7,12 +19,9 @@ __Initial version of the module to upload, download, validate and export RNASeq 
 __Changes__
 - wrapped samtools-v1.4.1 and picard validation for sam/bam alignment formats (latest from github)
 
-### Version 0.0.2
 
---Changes__
-- download_alignment() returns 'destination_dir' containing all the files in the alignment object, instead of
-'bam_file_path'. This was made to download legacy RNASeqAlignment objects which contained more than one file.
 
-### Version 0.1.0
 
-- Bumped up the version for release
+
+
+
