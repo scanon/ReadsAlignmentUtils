@@ -1,4 +1,6 @@
 --Changes__
+### Version 0.3.1
+- Fixed issue with download directory name. Uses uuid4 to have a unique directory name.
 
 ### Version 0.2.1
 - Fixed issue with samtools writing tmp files to current working directory when input files are very large.
