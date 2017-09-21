@@ -4,6 +4,7 @@ import os
 import sys
 import re
 import time
+import uuid
 import logging
 import zipfile
 import glob
@@ -72,11 +73,27 @@ stored alignment.
     INVALID_WS_NAME_RE = re.compile('[^\\w:._-]')
 
     def _get_file_path_info(self, file_path):
-
+        """
+        Given a file path, returns the directory, file name, file base and file extension
+        """
         dir, file_name = os.path.split(file_path)
         file_base, file_ext = os.path.splitext(file_name)
 
         return dir, file_name, file_base, file_ext
+
+    def _mkdir_p(self, path):
+        """
+        _mkdir_p: make directory for given path
+        """
+        if not path:
+            return
+        try:
+            os.makedirs(path)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
 
     def _check_required_param(self, in_params, param_list):
         """
@@ -398,9 +415,9 @@ stored alignment.
             raise
 
         # set the output dir
-        timestamp = str(int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds() * 1000))
-        output_dir = os.path.join(self.scratch, 'download_' + timestamp)
-        os.mkdir(output_dir)
+        uuid_str = str(uuid.uuid4())
+        output_dir = os.path.join(self.scratch, 'download_' + uuid_str)
+        self._mkdir_p(output_dir)
 
         file_ret = self.dfu.shock_to_file({'shock_id': alignment[0]['data']['file']['id'],
                                            'file_path': output_dir
@@ -414,6 +431,7 @@ stored alignment.
 
         bam_files = glob.glob(output_dir + '/*.bam')
 
+        uuid_prefix = uuid_str[:8]
         if len(bam_files) == 0:
             raise ValueError("Alignment object does not contain a bam file")
 
@@ -425,14 +443,14 @@ stored alignment.
                     raise Exception('{0} failed validation'.format(bam_file_path))
 
             if params.get('downloadBAI', False):
-                bai_file = timestamp + '_' + file_base + '.bai'
+                bai_file = uuid_prefix + '_' + file_base + '.bai'
                 bai_file_path = os.path.join(output_dir, bai_file)
                 self.samtools.create_bai_from_bam(ifile=file_name, ipath=output_dir, ofile=bai_file)
                 if not os.path.isfile(bai_file_path):
                     raise ValueError('Error creating {}'.format(bai_file_path))
 
             if params.get('downloadSAM', False):
-                sam_file = timestamp + '_' + file_base + '.sam'
+                sam_file = uuid_prefix + '_' + file_base + '.sam'
                 sam_file_path = os.path.join(output_dir, sam_file)
                 self.samtools.convert_bam_to_sam(ifile=file_name, ipath=output_dir, ofile=sam_file)
                 if not os.path.isfile(sam_file_path):
