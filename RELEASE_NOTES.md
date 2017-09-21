@@ -1,6 +1,6 @@
 --Changes__
 
-### Version 0.2.0
+### Version 0.2.1
 - Fixed issue with samtools writing tmp files to current working directory when input files are very large.
 
 ### Version 0.1.0
