@@ -38,7 +38,7 @@ class SamTools:
         ifile = os.path.join(ipath, ifile)
         ofile = os.path.join(opath, ofile)
 
-        return ifile, ofile
+        return ifile, ofile, opath
 
     def _check_prog(self):
         """
@@ -142,7 +142,7 @@ class SamTools:
         :returns 0 if successful, else 1
         """
         # prepare input and output file paths
-        ifile, ofile = self._prepare_paths(ifile, ipath, ofile, opath, '.sam', '.bam')
+        ifile, ofile, opath = self._prepare_paths(ifile, ipath, ofile, opath, '.sam', '.bam')
 
         # check if input file exists
         if not os.path.exists(ifile):
@@ -160,6 +160,7 @@ class SamTools:
         # it does not validate input and always returns True. Hence output
         # value is not being checked.
         try:
+            log('Converting sam to sorted bam for file: ' + str(ifile) + ' with cwd: ' + str(opath))
             sort = Popen(
                 'samtools sort -l 9 -O BAM > {0}'.format(ofile),
                 shell=True,
@@ -195,7 +196,7 @@ class SamTools:
         :returns 0 if successful, else 1
         """
         # prepare input and output file paths
-        ifile, ofile = self._prepare_paths(ifile, ipath, ofile, opath, '.sam', '.bam')
+        ifile, ofile, opath = self._prepare_paths(ifile, ipath, ofile, opath, '.sam', '.bam')
 
         # check if input file exists
         if not os.path.exists(ifile):
@@ -213,6 +214,7 @@ class SamTools:
         # it does not validate input and always returns True. Hence output
         # value is not being checked.
         try:
+            log('Converting bam to sam for file: ' + str(ifile) + ' with output file: '+str(ofile)+' and cwd: ' + str(opath))
             convert = Popen('samtools view -h {0} > {1}'.format(ifile, ofile),
                             shell=True, stdin=PIPE, stdout=PIPE, cwd=opath)
             convert.communicate()
@@ -242,7 +244,7 @@ class SamTools:
         :returns 0 if successful, else 1
         """
         # prepare input and output file paths
-        ifile, ofile = self._prepare_paths(ifile, ipath, ofile, opath, '.bam',
+        ifile, ofile, opath = self._prepare_paths(ifile, ipath, ofile, opath, '.bam',
                                            '.bai')
 
         # check if input file exists
@@ -262,6 +264,7 @@ class SamTools:
         # it does not validate input and always returns True. Hence output
         # value is not being checked.
         try:
+            log('Creating bai from bam for file: ' + str(ifile) + ' with output file: ' + str(ofile) + ' and cwd: ' + str(opath))
             create = Popen('samtools index {0} {1}'.format(ifile, ofile),
                            shell=True, stdin=PIPE, stdout=PIPE, cwd=opath)
             create.communicate()

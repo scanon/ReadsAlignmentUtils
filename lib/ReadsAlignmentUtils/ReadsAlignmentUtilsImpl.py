@@ -298,7 +298,7 @@ stored alignment.
         bam_file = file_path
         if file_ext.lower() == '.sam':
             bam_file = os.path.join(dir, file_base + '.bam')
-            self.samtools.convert_sam_to_sorted_bam(file_name, dir, bam_file)
+            self.samtools.convert_sam_to_sorted_bam(ifile=file_name, ipath=dir, ofile=bam_file)
 
         uploaded_file = self.dfu.file_to_shock({'file_path': bam_file,
                                                 'make_handle': 1
@@ -427,14 +427,14 @@ stored alignment.
             if params.get('downloadBAI', False):
                 bai_file = timestamp + '_' + file_base + '.bai'
                 bai_file_path = os.path.join(output_dir, bai_file)
-                self.samtools.create_bai_from_bam(file_name, output_dir, bai_file)
+                self.samtools.create_bai_from_bam(ifile=file_name, ipath=output_dir, ofile=bai_file)
                 if not os.path.isfile(bai_file_path):
                     raise ValueError('Error creating {}'.format(bai_file_path))
 
             if params.get('downloadSAM', False):
                 sam_file = timestamp + '_' + file_base + '.sam'
                 sam_file_path = os.path.join(output_dir, sam_file)
-                self.samtools.convert_bam_to_sam(file_name, output_dir, sam_file)
+                self.samtools.convert_bam_to_sam(ifile=file_name, ipath=output_dir, ofile=sam_file)
                 if not os.path.isfile(sam_file_path):
                     raise ValueError('Error creating {}'.format(sam_file_path))
 
