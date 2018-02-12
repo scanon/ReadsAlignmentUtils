@@ -1,4 +1,7 @@
 --Changes__
+### Version 0.3.2
+- Disable df check since it breaks at NERSC right now
+
 ### Version 0.3.1
 - Fixed issue with download directory name. Uses uuid4 to have a unique directory name.
 
